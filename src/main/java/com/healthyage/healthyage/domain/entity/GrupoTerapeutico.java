@@ -1,8 +1,9 @@
-package com.healthyage.healthyage.domain;
+package com.healthyage.healthyage.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.cloud.firestore.annotation.PropertyName;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,10 +18,12 @@ public class GrupoTerapeutico {
     @JsonProperty("id_grupo_terapeutico")
     private String idGrupoTerapeutico;
 
+    @NotBlank(message = "El nombre es requerido")
     private String nombre;
 
     @PropertyName("nombre_grupo")
     @JsonProperty("nombre_grupo")
+    @NotBlank(message = "El nombre del grupo es requerido")
     private String nombreGrupo;
 
     @PropertyName("id_grupo_terapeutico")

@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.cloud.FirestoreClient;
-import com.healthyage.healthyage.domain.Medicamento;
+import com.healthyage.healthyage.domain.entity.Medicamento;
 
 @Service
 public class MedicamentoService {

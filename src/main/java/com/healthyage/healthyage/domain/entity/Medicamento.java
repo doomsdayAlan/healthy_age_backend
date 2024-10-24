@@ -1,10 +1,14 @@
-package com.healthyage.healthyage.domain;
+package com.healthyage.healthyage.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.cloud.firestore.annotation.PropertyName;
+import com.google.firebase.database.annotations.Nullable;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,30 +23,44 @@ public class Medicamento {
 
     @PropertyName("id_grupo_terapeutico")
     @JsonProperty("id_grupo_terapeutico")
+    @NotBlank(message = "El id del grupo terapeutico es requerido")
     private String idGrupoTerapeutico;
+
+    @NotBlank(message = "La frecuencia es requerida")
     private int frecuencia;
+
+    @NotBlank(message = "El color es requerido")
     private String color;
+
+    @NotBlank(message = "La dosis es requerida")
     private int dosis;
 
     @PropertyName("unidad_medida")
     @JsonProperty("unidad_medida")
+    @NotBlank(message = "La unidad de medida es requerida")
     private String unidadMedida;
 
     @PropertyName("via_administracion")
     @JsonProperty("via_administracion")
+    @NotBlank(message = "La via de administración es requerida")
     private String viaAdministracion;
-
+    
+    @NotBlank(message = "La fecha es requerida")
+    @Pattern(regexp = "^(0[1-9]|[12][\\d]|3[01])[\\/\\-](0[1-9]|1[0-2])[\\/\\-](19|20)\\d\\d$", message = "El formato de fecha es incorrecto (DD/MM/YYYY o DD-MM-YYYY)")
     private String fecha;
-    private String hora;
+
+    @Nullable
     private String notas;
 
     @PropertyName("recordar_existencia")
     @JsonProperty("recordar_existencia")
-    private int recordarExistencia;
+    @Default
+    private int recordarExistencia = 0;
 
     @PropertyName("existencia_actual")
     @JsonProperty("existencia_actual")
-    private int existenciaActual;
+    @Default
+    private int existenciaActual = 0;   
 
     @PropertyName("id_medicamento")
     public String getIdMedicamento() {

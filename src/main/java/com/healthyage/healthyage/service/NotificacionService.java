@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.cloud.FirestoreClient;
-import com.healthyage.healthyage.domain.Notificacion;
+import com.healthyage.healthyage.domain.entity.Notificacion;
 
 @Service
 public class NotificacionService {

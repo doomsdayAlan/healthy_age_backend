@@ -3,7 +3,6 @@ package com.healthyage.healthyage.controller;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.healthyage.healthyage.domain.Tratamiento;
+import com.healthyage.healthyage.domain.entity.Tratamiento;
+import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.TratamientoService;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -27,31 +28,36 @@ public class TratamientoController {
 
     @GetMapping("")
     public ResponseEntity<List<Tratamiento>> obtenerTratamientos() throws InterruptedException, ExecutionException {
-        return new ResponseEntity<>(servicio.obtenerTratamientos(), HttpStatus.OK);
+        return ResponseEntity.ok(servicio.obtenerTratamientos());
     }
 
     @PostMapping("")
-    public ResponseEntity<Tratamiento> guardarTratamiento(@RequestBody Tratamiento tratamiento)
+    public ResponseEntity<Tratamiento> guardarTratamiento(@RequestBody @Valid Tratamiento tratamiento)
             throws InterruptedException, ExecutionException {
-        return new ResponseEntity<>(servicio.guardarTratamiento(tratamiento), HttpStatus.OK);
+        return ResponseEntity.ok(servicio.guardarTratamiento(tratamiento));
     }
 
     @GetMapping("/{id-tratamiento}")
     public ResponseEntity<Tratamiento> obtenerTratamiento(@PathVariable("id-tratamiento") String idTratamiento)
-            throws InterruptedException, ExecutionException {
-        return new ResponseEntity<>(servicio.obtenerTratamiento(idTratamiento), HttpStatus.OK);
+            throws InterruptedException, ExecutionException, ResourceNotFoundException {
+        var response = servicio.obtenerTratamiento(idTratamiento);
+        
+        if (response != null)
+            return ResponseEntity.ok(response);
+        else 
+            throw ResourceNotFoundException.createWith("medicamento");
     }
 
     @PutMapping("/{id-tratamiento}")
     public ResponseEntity<Tratamiento> actualizarTratamiento(@PathVariable("id-tratamiento") String idTratamiento,
-            @RequestBody Tratamiento tratamiento)
+            @RequestBody @Valid Tratamiento tratamiento)
             throws InterruptedException, ExecutionException {
-        return new ResponseEntity<>(servicio.actualizarTratamiento(idTratamiento, tratamiento), HttpStatus.OK);
+        return ResponseEntity.ok(servicio.actualizarTratamiento(idTratamiento, tratamiento));
     }
 
     @DeleteMapping("/{id-tratamiento}")
     public ResponseEntity<String> borrarTratamiento(@PathVariable("id-tratamiento") String idTratamiento)
             throws InterruptedException, ExecutionException {
-        return new ResponseEntity<>(servicio.borrarTratamiento(idTratamiento), HttpStatus.OK);
+        return ResponseEntity.ok(servicio.borrarTratamiento(idTratamiento));
     }
 }
