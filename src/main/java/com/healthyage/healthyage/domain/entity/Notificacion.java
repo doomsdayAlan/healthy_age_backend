@@ -24,9 +24,9 @@ public class Notificacion {
     @NotBlank(message = "El id de tratamiento es requerido")
     private String idTratamiento;
 
-    @NotBlank(message = "La fecha es requerida")
-    @Pattern(regexp = "^(0[1-9]|[12][\\d]|3[01])[\\/\\-](0[1-9]|1[0-2])[\\/\\-](19|20)\\d\\d$", message = "El formato de fecha es incorrecto (DD/MM/YYYY o DD-MM-YYYY)")
-    private String fecha;
+    @NotBlank(message = "La marca de tiempo es requerida")
+    @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][\\d]|3[01])T(0[\\d]|1[\\d]|2[0-3]):([0-5][\\d]):([0-5][\\d]?)$", message = "El formato debe ser yyyy-MM-dd'T'HH:mm:ss")
+    private String marcaTiempo;
 
     @PropertyName("tipo_notificacion")
     @JsonProperty("tipo_notificacion")
@@ -61,5 +61,15 @@ public class Notificacion {
     @PropertyName("tipo_notificacion")
     public void setTipoNotificacion(String tipoNotificacion) {
         this.tipoNotificacion = tipoNotificacion;
+    }
+
+    @PropertyName("marca_tiempo")
+    public String getMarcaTiempo() {
+        return marcaTiempo;
+    }
+
+    @PropertyName("marca_tiempo")
+    public void setMarcaTiempo(String marcaTiempo) {
+        this.marcaTiempo = marcaTiempo;
     }
 }

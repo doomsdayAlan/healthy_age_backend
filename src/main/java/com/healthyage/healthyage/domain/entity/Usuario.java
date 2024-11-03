@@ -36,13 +36,15 @@ public class Usuario {
     @Default
     private int rol = 0;
 
+    @PropertyName("token_usuario")
+    @JsonProperty("token_usuario")
+    private String tokenUsuario;
+
     @PropertyName("clave_api")
     @JsonProperty("clave_api")
     @Default
     private String claveApi = "";
-
-    @Default
-    private String adulto = "";
+    
     @Default
     private String cuidador = "";
 
@@ -75,4 +77,15 @@ public class Usuario {
     public void setClaveApi(String claveApi) {
         this.claveApi = claveApi;
     }
+
+    @PropertyName("token_usuario")
+    public String getTokenUsuario() {
+        return tokenUsuario;
+    }
+
+    @PropertyName("token_usuario")
+    public void setTokenUsuario(String tokenUsuario) {
+        this.tokenUsuario = tokenUsuario;
+    }
+    
 }

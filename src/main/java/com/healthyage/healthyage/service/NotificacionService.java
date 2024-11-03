@@ -53,6 +53,15 @@ public class NotificacionService {
         return documento.exists() ? documento.toObject(Notificacion.class) : null;
     }
 
+    public Notificacion obtenerNotificacionPorTratamiento(String idTratamiento) throws InterruptedException, ExecutionException {
+        var bdFirestore = FirestoreClient.getFirestore();
+        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idTratamiento);
+        var futuro = referenciaDocumento.get();
+        var documento = futuro.get();
+
+        return documento.exists() ? documento.toObject(Notificacion.class) : null;
+    }
+
     public Notificacion actualizarNotificacion(String idNotificacion, Notificacion notificacion)
             throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();

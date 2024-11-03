@@ -37,26 +37,38 @@ public class NotificacionController {
         return ResponseEntity.ok(servicio.guardarNotificacion(notificacion));
     }
 
-    @GetMapping("/{id-medicamento}")
-    public ResponseEntity<Notificacion> obtenerNotificacion(@PathVariable("id-medicamento") String idNotificacion)
+    @GetMapping("/{id-notificacion}")
+    public ResponseEntity<Notificacion> obtenerNotificacion(@PathVariable("id-notificacion") String idNotificacion)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
         var response = servicio.obtenerNotificacion(idNotificacion);
         
         if (response != null)
             return ResponseEntity.ok(response);
         else 
-            throw ResourceNotFoundException.createWith("medicamento");
+            throw ResourceNotFoundException.createWith("notificacion");
     }
 
-    @PutMapping("/{id-medicamento}")
-    public ResponseEntity<Notificacion> actualizarNotificacion(@PathVariable("id-medicamento") String idNotificacion,
+    @GetMapping("/tratamiento/{id-tratamiento}")
+    public ResponseEntity<Notificacion> obtenerNotificacionPorTratamiento(
+            @PathVariable("id-tratamiento") String idTratamiento)
+            throws InterruptedException, ExecutionException, ResourceNotFoundException {
+        var response = servicio.obtenerNotificacionPorTratamiento(idTratamiento);
+
+        if (response != null)
+            return ResponseEntity.ok(response);
+        else
+            throw ResourceNotFoundException.createWith("tratamiento");
+    }
+
+    @PutMapping("/{id-notificacion}")
+    public ResponseEntity<Notificacion> actualizarNotificacion(@PathVariable("id-notificacion") String idNotificacion,
             @RequestBody @Valid Notificacion notificacion)
             throws InterruptedException, ExecutionException {
         return ResponseEntity.ok(servicio.actualizarNotificacion(idNotificacion, notificacion));
     }
 
-    @DeleteMapping("/{id-medicamento}")
-    public ResponseEntity<String> borrarNotificacion(@PathVariable("id-medicamento") String idNotificacion)
+    @DeleteMapping("/{id-notificacion}")
+    public ResponseEntity<String> borrarNotificacion(@PathVariable("id-notificacion") String idNotificacion)
             throws InterruptedException, ExecutionException {
         return ResponseEntity.ok(servicio.borrarNotificacion(idNotificacion));
     }

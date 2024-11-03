@@ -20,6 +20,10 @@ public class Medicamento {
     @PropertyName("id_medicamento")
     @JsonProperty("id_medicamento")
     private String idMedicamento;
+    
+    @PropertyName("nombre_medicamento")
+    @JsonProperty("nombre_medicamento")
+    private String nombreMedicamento;
 
     @PropertyName("id_grupo_terapeutico")
     @JsonProperty("id_grupo_terapeutico")
@@ -31,9 +35,6 @@ public class Medicamento {
 
     @NotBlank(message = "El color es requerido")
     private String color;
-
-    @NotBlank(message = "La dosis es requerida")
-    private int dosis;
 
     @PropertyName("unidad_medida")
     @JsonProperty("unidad_medida")
@@ -70,6 +71,18 @@ public class Medicamento {
     @PropertyName("id_medicamento")
     public void setIdMedicamento(String idMedicamento) {
         this.idMedicamento = idMedicamento;
+    }
+
+    @PropertyName("nombre_medicamento")
+    @JsonProperty("nombre_medicamento")
+    public String getNombreMedicamento() {
+        return nombreMedicamento;
+    }
+
+    @PropertyName("nombre_medicamento")
+    @JsonProperty("nombre_medicamento")
+    public void setNombreMedicamento(String nombreMedicamento) {
+        this.nombreMedicamento = nombreMedicamento;
     }
 
     @PropertyName("id_grupo_terapeutico")

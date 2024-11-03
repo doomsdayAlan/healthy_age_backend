@@ -1,5 +1,6 @@
 package com.healthyage.healthyage.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -7,10 +8,15 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.cloud.FirestoreClient;
+import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Tratamiento;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class TratamientoService {
+    private final NotificacionService notificacionService;
     private static final String COLECCION = "tratamiento";
 
     public List<Tratamiento> obtenerTratamientos() throws InterruptedException, ExecutionException {
@@ -37,6 +43,15 @@ public class TratamientoService {
         var result = futuro.get();
 
         if (result != null) {
+            var notificacion = Notificacion.builder()
+                    .idTratamiento(tratamiento.getIdTratamiento())
+                    .marcaTiempo(LocalDateTime.parse(tratamiento.getHoraInicio())
+                            .plusHours(tratamiento.getIntervalo()).toString())
+                    .tipoNotificacion("")
+                    .build();
+
+            notificacionService.guardarNotificacion(notificacion);
+
             return tratamiento;
         } else {
             throw new ExecutionException("Error al guardar el tratamiento: resultado nulo", null);

@@ -49,9 +49,16 @@ public class Tratamiento {
     @Pattern(regexp = "^(0[1-9]|[12][\\d]|3[01])[\\/\\-](0[1-9]|1[0-2])[\\/\\-](19|20)\\d\\d$", message = "El formato de fecha es incorrecto (DD/MM/YYYY o DD-MM-YYYY)")
     private String fechaFin;
 
-    @NotBlank(message = "La hora es requerida")
+    @NotBlank(message = "La hora de inicio del tratamiento es requerida")
     @Pattern(regexp = "^([01][\\d]|2[0-3]):[0-5][\\d]$", message = "El formato de hora es incorrecto (HH:mm) (24 horas)")
-    private String hora;
+    private String horaInicio;
+
+    @NotBlank(message = "El intervalo es requerido")
+    @Pattern(regexp = "^(?:[1-9]|1[\\d]|2[0-4])$", message = "La hora debe estar entre 1 y 24")
+    private int intervalo;
+
+    @NotBlank(message = "La dosis es requerida")
+    private int dosis;
 
     @PropertyName("id_tratamiento")
     public String getIdTratamiento() {
@@ -112,4 +119,14 @@ public class Tratamiento {
     public void setFechaFin(String fechaFin) {
         this.fechaFin = fechaFin;
     } 
+
+    @PropertyName("hora_inicio")
+    public String getHoraInicio() {
+        return horaInicio;
+    }
+
+    @PropertyName("hora_inicio")
+    public void setHoraInicio(String horaInicio) {
+        this.horaInicio = horaInicio;
+    }
 }
