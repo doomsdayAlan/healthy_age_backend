@@ -4,6 +4,7 @@ on:
   schedule:
     # Ejecutar cada 14 minutos y 50 segundos
     - cron: '*/14 * * * *' # Ejecuta cada 14 minutos; ajustar según sea necesario.
+  workflow_dispatch:
 
 jobs:
   enviarPeticionGET:
