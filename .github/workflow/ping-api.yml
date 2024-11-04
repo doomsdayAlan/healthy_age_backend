@@ -1,0 +1,32 @@
+name: Llamada a la API cada 14:50 minutos
+
+on:
+  schedule:
+    # Ejecuta el workflow cada 15 minutos.
+    - cron: '*/15 * * * *'
+
+jobs:
+  ping-api:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enviar petición GET a la API
+        env:
+          TARGET_URL: "https://healthy-age-backend.onrender.com/usuarios"
+        run: |
+          SECONDS_TO_WAIT=890  # 14 minutos y 50 segundos en segundos
+          CURRENT_TIME=$(date +%s)
+          NEXT_EXECUTION_TIME=$((CURRENT_TIME + SECONDS_TO_WAIT))
+          
+          echo "Esperando $SECONDS_TO_WAIT segundos..."
+          sleep $SECONDS_TO_WAIT
+          
+          # Enviar la petición
+          response=$(curl -s -o /dev/null -w "%{http_code}" $TARGET_URL)
+          
+          if [ "$response" -eq 200 ]; then
+            echo "Petición enviada exitosamente."
+          else
+            echo "Error al conectar con la API. Código de estado: $response"
+            exit 1
+          fi
