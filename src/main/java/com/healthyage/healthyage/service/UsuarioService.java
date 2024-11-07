@@ -40,7 +40,7 @@ public class UsuarioService {
         var bdFirestore = FirestoreClient.getFirestore();
 
         var usuarioExistente = bdFirestore.collection(COLECCION).whereEqualTo("correo", usuario.getCorreo())
-                .whereEqualTo("numero", usuario.getNumero()).get().get().getDocuments();
+                .whereEqualTo("numero", usuario.getTelefono()).get().get().getDocuments();
 
         if (!usuarioExistente.isEmpty()) {
             throw new DuplicatedObjectException("El correo o número de teléfono ya está registrado");
