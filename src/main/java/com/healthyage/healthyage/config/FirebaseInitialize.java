@@ -40,25 +40,28 @@ public class FirebaseInitialize {
 
     @PostConstruct
     public void initialize() throws IOException {
-        var jsonObject = new JsonObject();
-        jsonObject.addProperty("type", type);
-        jsonObject.addProperty("project_id", projectId);
-        jsonObject.addProperty("private_key_id", privateKeyId);
-        jsonObject.addProperty("private_key", privateKey.replace("\\n", "\n"));
-        jsonObject.addProperty("client_email", clientEmail);
-        jsonObject.addProperty("client_id", clientId);
-        jsonObject.addProperty("auth_uri", authUri);
-        jsonObject.addProperty("token_uri", tokenUri);
-        jsonObject.addProperty("auth_provider_x509_cert_url", authProviderX509CertUrl);
-        jsonObject.addProperty("client_x509_cert_url", clientX509CertUrl);
-        jsonObject.addProperty("universe_domain", universeDomain);
+        // Verifica si Firebase ya ha sido inicializado
+        if (FirebaseApp.getApps().isEmpty()) {
+            var jsonObject = new JsonObject();
+            jsonObject.addProperty("type", type);
+            jsonObject.addProperty("project_id", projectId);
+            jsonObject.addProperty("private_key_id", privateKeyId);
+            jsonObject.addProperty("private_key", privateKey.replace("\\n", "\n"));
+            jsonObject.addProperty("client_email", clientEmail);
+            jsonObject.addProperty("client_id", clientId);
+            jsonObject.addProperty("auth_uri", authUri);
+            jsonObject.addProperty("token_uri", tokenUri);
+            jsonObject.addProperty("auth_provider_x509_cert_url", authProviderX509CertUrl);
+            jsonObject.addProperty("client_x509_cert_url", clientX509CertUrl);
+            jsonObject.addProperty("universe_domain", universeDomain);
 
-        var refreshToken = new ByteArrayInputStream(jsonObject.toString().getBytes());
+            var refreshToken = new ByteArrayInputStream(jsonObject.toString().getBytes());
 
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(refreshToken))
-                .build();
+            var options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(refreshToken))
+                    .build();
 
-        FirebaseApp.initializeApp(options);
+            FirebaseApp.initializeApp(options);
+        }
     }
 }

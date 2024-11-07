@@ -1,18 +1,19 @@
 package com.healthyage.healthyage.exception;
 
-public class ResourceNotFoundException extends Exception {
-    private String resource;
-
-    public static ResourceNotFoundException createWith(String resource) {
-        return new ResourceNotFoundException(resource);
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException() {
+        super();
     }
 
-    private ResourceNotFoundException(String resource) {
-        this.resource = resource;
+    public ResourceNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    public String getMessage() {
-        return "Resource '" + resource + "' not found";
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+
+    public ResourceNotFoundException(Throwable cause) {
+        super(cause);
     }
 }

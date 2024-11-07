@@ -13,7 +13,6 @@ import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
 public class OpenAPIConfiguration {
-
     @Value("${openapi.server.url}")
     private String serverUrl;
 
@@ -21,16 +20,16 @@ public class OpenAPIConfiguration {
     private String deploymentEnvironment;    
 
     @Bean
-    public OpenAPI defineOpenApi() {
-        Server server = new Server();
+    OpenAPI defineOpenApi() {
+        var server = new Server();
         server.setUrl(serverUrl); // Usa la propiedad configurada
         server.setDescription(deploymentEnvironment);
 
-        Contact myContact = new Contact();
+        var myContact = new Contact();
         myContact.setName("Alan Alexis Aguilar");
         myContact.setEmail("alanalexisaguilar@gmail.com");
 
-        Info information = new Info()
+        var information = new Info()
                 .title("API para el manejo de la información de la aplicación Healty Age")
                 .version("1.0")
                 .description(

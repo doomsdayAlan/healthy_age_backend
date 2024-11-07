@@ -8,10 +8,17 @@ import org.springframework.stereotype.Service;
 
 import com.google.firebase.cloud.FirestoreClient;
 import com.healthyage.healthyage.domain.entity.Usuario;
+import com.healthyage.healthyage.exception.DuplicatedObjectException;
+import com.healthyage.healthyage.util.OTPGenerator;
+
+import lombok.AllArgsConstructor;
 
 @Service
+@AllArgsConstructor
 public class UsuarioService {
     private static final String COLECCION = "usuario";
+
+    private final EmailService emailService;
 
     public List<Usuario> obtenerUsuarios() throws InterruptedException, ExecutionException {
         var usuarios = new ArrayList<Usuario>();
@@ -28,14 +35,25 @@ public class UsuarioService {
         return usuarios;
     }
 
-    public Usuario guardarUsuario(Usuario usuario) throws InterruptedException, ExecutionException {
+    public Usuario guardarUsuario(Usuario usuario)
+            throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
+
+        var usuarioExistente = bdFirestore.collection(COLECCION).whereEqualTo("correo", usuario.getCorreo())
+                .whereEqualTo("numero", usuario.getNumero()).get().get().getDocuments();
+
+        if (!usuarioExistente.isEmpty()) {
+            throw new DuplicatedObjectException("El correo o número de teléfono ya está registrado");
+        }
+
         var documento = bdFirestore.collection(COLECCION).document();
         usuario.setIdUsuario(documento.getId());
         var futuro = documento.set(usuario);
         var result = futuro.get();
 
         if (result != null) {
+            emailService.sendEmail(usuario.getCorreo(), "Tu clave de verificación", OTPGenerator.generateOTP());
+
             return usuario;
         } else {
             throw new ExecutionException("Error al guardar el usuario: resultado nulo", null);

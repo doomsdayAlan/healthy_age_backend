@@ -3,6 +3,7 @@ package com.healthyage.healthyage.controller;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,17 +13,20 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.NotificacionService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/notificaciones")
+@Tag(name = "Api de notificaciones")
 public class NotificacionController {
     private final NotificacionService servicio;
 
@@ -44,8 +48,8 @@ public class NotificacionController {
         
         if (response != null)
             return ResponseEntity.ok(response);
-        else 
-            throw ResourceNotFoundException.createWith("notificacion");
+        else
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La notificación no existe");
     }
 
     @GetMapping("/tratamiento/{id-tratamiento}")
@@ -57,7 +61,7 @@ public class NotificacionController {
         if (response != null)
             return ResponseEntity.ok(response);
         else
-            throw ResourceNotFoundException.createWith("tratamiento");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La notificación no existe");
     }
 
     @PutMapping("/{id-notificacion}")

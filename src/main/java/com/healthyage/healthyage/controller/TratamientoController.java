@@ -3,6 +3,7 @@ package com.healthyage.healthyage.controller;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,17 +13,20 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.healthyage.healthyage.domain.entity.Tratamiento;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.TratamientoService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/tratamientos")
+@Tag(name = "Api de tratamientos")
 public class TratamientoController {
     private final TratamientoService servicio;
 
@@ -44,8 +48,8 @@ public class TratamientoController {
         
         if (response != null)
             return ResponseEntity.ok(response);
-        else 
-            throw ResourceNotFoundException.createWith("medicamento");
+        else
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El tratamiento no existe");
     }
 
     @PutMapping("/{id-tratamiento}")

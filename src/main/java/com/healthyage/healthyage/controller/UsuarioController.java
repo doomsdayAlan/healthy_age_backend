@@ -1,8 +1,10 @@
 package com.healthyage.healthyage.controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,17 +14,20 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.UsuarioService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/usuarios")
+@Tag(name = "Api de usuarios")
 public class UsuarioController {
     private final UsuarioService servicio;
 
@@ -33,7 +38,7 @@ public class UsuarioController {
 
     @PostMapping("")
     public ResponseEntity<Usuario> guardarUsuario(@RequestBody @Valid Usuario usuario)
-            throws InterruptedException, ExecutionException {
+            throws InterruptedException, ExecutionException, IOException {
         return ResponseEntity.ok(servicio.guardarUsuario(usuario));
     }
 
@@ -44,8 +49,8 @@ public class UsuarioController {
         
         if (response != null)
             return ResponseEntity.ok(response);
-        else 
-            throw ResourceNotFoundException.createWith("medicamento");
+        else
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El usuario no existe");
     }
 
     @PutMapping("/{id-usuario}")
