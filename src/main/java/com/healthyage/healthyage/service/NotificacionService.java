@@ -15,8 +15,6 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class NotificacionService {
-    private final MedicacionService medicacionService;
-
     private static final String COLECCION = "notificacion";
 
     public List<Notificacion> obtenerNotificaciones() throws InterruptedException, ExecutionException {
@@ -74,14 +72,13 @@ public class NotificacionService {
             throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
         var documento = bdFirestore.collection(COLECCION).document(idNotificacion);
-        var medicacion = medicacionService.obtenerMedicacion(notificacion.getIdMedicacion());
         var marcaTiempo = notificacion.getMarcaTiempo();
 
         if (pospuesto) {
             marcaTiempo = LocalDateTime.parse(notificacion.getMarcaTiempo()).plusMinutes(10).toString();
         } else if (aceptado) {
-            marcaTiempo =  MedicacionService.ajustarTiempoNotificacion(LocalDateTime.now(), medicacion.getIntervalo(),
-                        medicacion.getTipoIntervalo());
+            marcaTiempo =  MedicacionService.ajustarTiempoNotificacion(LocalDateTime.now(), notificacion.getIntervalo(),
+                        notificacion.getTipoIntervalo());
         }
 
         notificacion.setIdNotificacion(idNotificacion);

@@ -76,6 +76,8 @@ public class MedicacionService {
                 .idTratamiento(idTratamiento)
                 .idMedicacion(medicacion.getIdMedicacion())
                 .idCuidador(usuario.getIdCuidador())
+                .intervalo(medicacion.getIntervalo())
+                .tipoIntervalo(medicacion.getTipoIntervalo())
                 .marcaTiempo(ajustarTiempoNotificacion(
                         LocalDateTime.parse(medicacion.getFechaInicio() + "T" + medicacion.getHoraInicio()),
                         medicacion.getIntervalo(), medicacion.getTipoIntervalo()))
