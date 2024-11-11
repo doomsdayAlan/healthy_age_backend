@@ -15,13 +15,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Medicamento {
-    @JsonProperty("id_medicamento")
+    @JsonProperty(value = "id_medicamento", access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "Id del medicamento", example = "K1r2bz38FEgRTudHUMHx")
     private String idMedicamento;
     
     @JsonProperty("nombre_medicamento")
     @NotBlank(message = "El nombre del medicamento es requerido")
     @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$", message = "El nombre del medicamento solo debe contener letras válidas")
-    @Schema(description = "Nombre del medicamento", example = "K1r2bz38FEgRTudHUMHx")
+    @Schema(description = "Nombre del medicamento", example = "Acido acetil salicilico")
     private String nombreMedicamento;
 }

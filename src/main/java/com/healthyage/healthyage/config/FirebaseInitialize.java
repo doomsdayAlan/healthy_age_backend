@@ -4,8 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
+import org.springframework.context.annotation.Configuration;
 import jakarta.annotation.PostConstruct;
 import com.google.auth.oauth2.GoogleCredentials;
 
@@ -13,29 +12,29 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.gson.JsonObject;
 
-@Service
+@Configuration
 public class FirebaseInitialize {
-    @Value("${firebase.firestore.type}")
+    @Value("${firebase.type}")
     private String type;
-    @Value("${firebase.firestore.project-id}")
+    @Value("${firebase.project-id}")
     private String projectId;
-    @Value("${firebase.firestore.private-key-id}")
+    @Value("${firebase.private-key-id}")
     private String privateKeyId;
-    @Value("${firebase.firestore.private-key}")
+    @Value("${firebase.private-key}")
     private String privateKey;
-    @Value("${firebase.firestore.client-email}")
+    @Value("${firebase.client-email}")
     private String clientEmail;
-    @Value("${firebase.firestore.client-id}")
+    @Value("${firebase.client-id}")
     private String clientId;
-    @Value("${firebase.firestore.auth-uri}")
+    @Value("${firebase.auth-uri}")
     private String authUri;
-    @Value("${firebase.firestore.token-uri}")
+    @Value("${firebase.token-uri}")
     private String tokenUri;
-    @Value("${firebase.firestore.authprovider-x509-cert-url}")
+    @Value("${firebase.authprovider-x509-cert-url}")
     private String authProviderX509CertUrl;
-    @Value("${firebase.firestore.client-x509-cert-url}")
+    @Value("${firebase.client-x509-cert-url}")
     private String clientX509CertUrl;
-    @Value("${firebase.firestore.universe-domain}")
+    @Value("${firebase.universe-domain}")
     private String universeDomain;
 
     @PostConstruct

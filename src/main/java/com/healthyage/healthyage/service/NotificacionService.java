@@ -1,5 +1,6 @@
 package com.healthyage.healthyage.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -9,8 +10,13 @@ import org.springframework.stereotype.Service;
 import com.google.firebase.cloud.FirestoreClient;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class NotificacionService {
+    private final MedicacionService medicacionService;
+
     private static final String COLECCION = "notificacion";
 
     public List<Notificacion> obtenerNotificaciones() throws InterruptedException, ExecutionException {
@@ -53,20 +59,34 @@ public class NotificacionService {
         return documento.exists() ? documento.toObject(Notificacion.class) : null;
     }
 
-    public Notificacion obtenerNotificacionPorTratamiento(String idTratamiento) throws InterruptedException, ExecutionException {
+    public Notificacion obtenerNotificacionPorTratamiento(String idTratamiento)
+            throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idTratamiento);
-        var futuro = referenciaDocumento.get();
-        var documento = futuro.get();
+        var referenciaDocumentos = bdFirestore.collection(COLECCION).whereEqualTo("idTratamiento", idTratamiento).get()
+                .get().getDocuments();
 
-        return documento.exists() ? documento.toObject(Notificacion.class) : null;
+        return referenciaDocumentos.stream()
+                .map(doc -> doc.toObject(Notificacion.class)).toList().get(0);
     }
 
-    public Notificacion actualizarNotificacion(String idNotificacion, Notificacion notificacion)
+    public Notificacion actualizarNotificacion(String idNotificacion, Notificacion notificacion, boolean pospuesto,
+            boolean aceptado)
             throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
         var documento = bdFirestore.collection(COLECCION).document(idNotificacion);
+        var medicacion = medicacionService.obtenerMedicacion(notificacion.getIdMedicacion());
+        var marcaTiempo = notificacion.getMarcaTiempo();
+
+        if (pospuesto) {
+            marcaTiempo = LocalDateTime.parse(notificacion.getMarcaTiempo()).plusMinutes(10).toString();
+        } else if (aceptado) {
+            marcaTiempo =  MedicacionService.ajustarTiempoNotificacion(LocalDateTime.now(), medicacion.getIntervalo(),
+                        medicacion.getTipoIntervalo());
+        }
+
         notificacion.setIdNotificacion(idNotificacion);
+        notificacion.setMarcaTiempo(marcaTiempo);
+
         var futuro = documento.set(notificacion);
         var result = futuro.get();
 

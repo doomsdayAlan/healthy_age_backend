@@ -16,9 +16,9 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class UsuarioService {
-    private static final String COLECCION = "usuario";
-
     private final EmailService emailService;
+    
+    private static final String COLECCION = "usuario";
 
     public List<Usuario> obtenerUsuarios() throws InterruptedException, ExecutionException {
         var usuarios = new ArrayList<Usuario>();
@@ -37,23 +37,25 @@ public class UsuarioService {
 
     public Usuario guardarUsuario(Usuario usuario)
             throws InterruptedException, ExecutionException {
+        var correo = usuario.getCorreo();
+        var correoNoVerificado = "unverified:" + usuario.getCorreo();
         var bdFirestore = FirestoreClient.getFirestore();
-
-        var usuarioExistente = bdFirestore.collection(COLECCION).whereEqualTo("correo", usuario.getCorreo())
+        var usuariosExistente = bdFirestore.collection(COLECCION).whereEqualTo("correo", correo)
+                .whereEqualTo("correo", correoNoVerificado)
                 .whereEqualTo("numero", usuario.getTelefono()).get().get().getDocuments();
 
-        if (!usuarioExistente.isEmpty()) {
+        if (!usuariosExistente.isEmpty()) {
             throw new DuplicatedObjectException("El correo o número de teléfono ya está registrado");
         }
 
         var documento = bdFirestore.collection(COLECCION).document();
         usuario.setIdUsuario(documento.getId());
+        usuario.setCorreo(correoNoVerificado);
         var futuro = documento.set(usuario);
         var result = futuro.get();
 
         if (result != null) {
-            emailService.sendEmail(usuario.getCorreo(), "Tu clave de verificación", OTPGenerator.generateOTP());
-
+            emailService.sendEmail(correo, "Tu clave de verificación", OTPGenerator.generateOTP());
             return usuario;
         } else {
             throw new ExecutionException("Error al guardar el usuario: resultado nulo", null);

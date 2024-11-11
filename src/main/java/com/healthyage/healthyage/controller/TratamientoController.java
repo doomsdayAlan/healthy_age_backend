@@ -52,6 +52,15 @@ public class TratamientoController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El tratamiento no existe");
     }
 
+    @GetMapping("/usuario/{id-usuario}")
+    public ResponseEntity<List<Tratamiento>> obtenerTratamientosPorUsuario(
+            @PathVariable("id-usuario") String idUsuario)
+            throws InterruptedException, ExecutionException, ResourceNotFoundException {
+        var response = servicio.obtenerTratamientosPorUsuario(idUsuario);
+
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/{id-tratamiento}")
     public ResponseEntity<Tratamiento> actualizarTratamiento(@PathVariable("id-tratamiento") String idTratamiento,
             @RequestBody @Valid Tratamiento tratamiento)

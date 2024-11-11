@@ -1,14 +1,11 @@
 package com.healthyage.healthyage.service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-
 import org.springframework.stereotype.Service;
 
 import com.google.firebase.cloud.FirestoreClient;
-import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Tratamiento;
 
 import lombok.AllArgsConstructor;
@@ -16,7 +13,6 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class TratamientoService {
-    private final NotificacionService notificacionService;
     private static final String COLECCION = "tratamiento";
 
     public List<Tratamiento> obtenerTratamientos() throws InterruptedException, ExecutionException {
@@ -43,36 +39,37 @@ public class TratamientoService {
         var result = futuro.get();
 
         if (result != null) {
-            var notificacion = Notificacion.builder()
-                    .idTratamiento(tratamiento.getIdTratamiento())
-                    .marcaTiempo(LocalDateTime.parse(tratamiento.getHoraInicio())
-                            .plusHours(tratamiento.getIntervalo()).toString())
-                    .tipoNotificacion("")
-                    .build();
-
-            notificacionService.guardarNotificacion(notificacion);
-
             return tratamiento;
         } else {
             throw new ExecutionException("Error al guardar el tratamiento: resultado nulo", null);
         }
     }
 
-    public Tratamiento obtenerTratamiento(String idMedicamento)
+    public Tratamiento obtenerTratamiento(String idTratamiento)
             throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idMedicamento);
+        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idTratamiento);
         var futuro = referenciaDocumento.get();
         var documento = futuro.get();
 
         return documento.exists() ? documento.toObject(Tratamiento.class) : null;
     }
 
-    public Tratamiento actualizarTratamiento(String idMedicamento, Tratamiento tratamiento)
+    public List<Tratamiento> obtenerTratamientosPorUsuario(String idUsuario)
             throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idMedicamento);
-        tratamiento.setIdTratamiento(idMedicamento);
+        var referenciaDocumentos = bdFirestore.collection(COLECCION).whereEqualTo("idUsuario", idUsuario).get()
+                .get().getDocuments();
+
+        return referenciaDocumentos.stream()
+                .map(doc -> doc.toObject(Tratamiento.class)).toList();
+    }
+
+    public Tratamiento actualizarTratamiento(String idTratamiento, Tratamiento tratamiento)
+            throws InterruptedException, ExecutionException {
+        var bdFirestore = FirestoreClient.getFirestore();
+        var documento = bdFirestore.collection(COLECCION).document(idTratamiento);
+        tratamiento.setIdTratamiento(idTratamiento);
         var futuro = documento.set(tratamiento);
         var result = futuro.get();
 
@@ -83,14 +80,14 @@ public class TratamientoService {
         }
     }
 
-    public String borrarTratamiento(String idMedicamento) throws InterruptedException, ExecutionException {
+    public String borrarTratamiento(String idTratamiento) throws InterruptedException, ExecutionException {
         var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idMedicamento);
+        var documento = bdFirestore.collection(COLECCION).document(idTratamiento);
         var futuro = documento.delete();
         var result = futuro.get();
 
         if (result != null) {
-            return "Tratamiento con ID " + idMedicamento + " borrado con éxito a las: "
+            return "Tratamiento con ID " + idTratamiento + " borrado con éxito a las: "
                     + result.getUpdateTime();
         } else {
             throw new ExecutionException("Error al borrar el tratamiento: resultado nulo", null);

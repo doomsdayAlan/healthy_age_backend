@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -52,23 +53,13 @@ public class NotificacionController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La notificación no existe");
     }
 
-    @GetMapping("/tratamiento/{id-tratamiento}")
-    public ResponseEntity<Notificacion> obtenerNotificacionPorTratamiento(
-            @PathVariable("id-tratamiento") String idTratamiento)
-            throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.obtenerNotificacionPorTratamiento(idTratamiento);
-
-        if (response != null)
-            return ResponseEntity.ok(response);
-        else
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La notificación no existe");
-    }
-
     @PutMapping("/{id-notificacion}")
     public ResponseEntity<Notificacion> actualizarNotificacion(@PathVariable("id-notificacion") String idNotificacion,
+            @RequestParam(defaultValue = "false") boolean pospuesto,
+            @RequestParam(defaultValue = "false") boolean aceptado,
             @RequestBody @Valid Notificacion notificacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.actualizarNotificacion(idNotificacion, notificacion));
+        return ResponseEntity.ok(servicio.actualizarNotificacion(idNotificacion, notificacion, pospuesto, aceptado));
     }
 
     @DeleteMapping("/{id-notificacion}")

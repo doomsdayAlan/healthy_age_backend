@@ -1,6 +1,5 @@
 package com.healthyage.healthyage.controller;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -38,7 +37,7 @@ public class UsuarioController {
 
     @PostMapping("")
     public ResponseEntity<Usuario> guardarUsuario(@RequestBody @Valid Usuario usuario)
-            throws InterruptedException, ExecutionException, IOException {
+            throws InterruptedException, ExecutionException {
         return ResponseEntity.ok(servicio.guardarUsuario(usuario));
     }
 
