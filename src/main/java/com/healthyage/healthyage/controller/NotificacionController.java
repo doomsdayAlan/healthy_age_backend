@@ -29,23 +29,23 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/notificaciones")
 @Tag(name = "Api de notificaciones")
 public class NotificacionController {
-    private final NotificacionService servicio;
+    private final NotificacionService notificacionService;
 
     @GetMapping("")
     public ResponseEntity<List<Notificacion>> obtenerNotificaciones() throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerNotificaciones());
+        return ResponseEntity.ok(notificacionService.obtenerNotificaciones());
     }
 
     @PostMapping("")
     public ResponseEntity<Notificacion> guardarNotificacion(@RequestBody @Valid Notificacion notificacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.guardarNotificacion(notificacion));
+        return ResponseEntity.ok(notificacionService.guardarNotificacion(notificacion));
     }
 
     @GetMapping("/{id-notificacion}")
     public ResponseEntity<Notificacion> obtenerNotificacion(@PathVariable("id-notificacion") String idNotificacion)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.obtenerNotificacion(idNotificacion);
+        var response = notificacionService.obtenerNotificacion(idNotificacion);
         
         if (response != null)
             return ResponseEntity.ok(response);
@@ -59,12 +59,12 @@ public class NotificacionController {
             @RequestParam(defaultValue = "false") boolean aceptado,
             @RequestBody @Valid Notificacion notificacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.actualizarNotificacion(idNotificacion, notificacion, pospuesto, aceptado));
+        return ResponseEntity.ok(notificacionService.actualizarNotificacion(idNotificacion, notificacion, pospuesto, aceptado));
     }
 
     @DeleteMapping("/{id-notificacion}")
     public ResponseEntity<String> borrarNotificacion(@PathVariable("id-notificacion") String idNotificacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.borrarNotificacion(idNotificacion));
+        return ResponseEntity.ok(notificacionService.borrarNotificacion(idNotificacion));
     }
 }

@@ -1,5 +1,6 @@
 package com.healthyage.healthyage.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -28,17 +30,24 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/medicaciones")
 @Tag(name = "Api de medicaciones")
 public class MedicacionController {
-    private final MedicacionService servicio;
+    private final MedicacionService medicacionService;
 
     @GetMapping("")
     public ResponseEntity<List<Medicacion>> obtenerMedicaciones() throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerMedicaciones());
+        return ResponseEntity.ok(medicacionService.obtenerMedicaciones());
+    }
+
+    @GetMapping("/usuario/{id-usuario}")
+    public ResponseEntity<List<Medicacion>> obtenerMedicacionesPorUsuario(@PathVariable("id-usuario") String idUsuario,
+            @RequestParam(required = false) LocalDate fecha)
+            throws InterruptedException, ExecutionException {
+        return ResponseEntity.ok(medicacionService.obtenerMedicacionesporUsuario(idUsuario, fecha));
     }
 
     @PostMapping("")
     public ResponseEntity<Medicacion> guardarMedicacion(@RequestBody @Valid Medicacion medicacion)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.guardarMedicacion(medicacion);
+        var response = medicacionService.guardarMedicacion(medicacion);
 
         if (response != null)
             return ResponseEntity.ok(response);
@@ -50,7 +59,7 @@ public class MedicacionController {
     public ResponseEntity<List<String>> guardarMedicacionPorTratamiento(
             @PathVariable("id-tratamiento") String idTratamiento, @RequestBody @Valid Medicacion medicacion)
             throws InterruptedException, ExecutionException {
-        var response = servicio.guardarMedicacionPorTratamiento(idTratamiento, medicacion);
+        var response = medicacionService.guardarMedicacionPorTratamiento(idTratamiento, medicacion);
 
         if (!response.isEmpty())
             return ResponseEntity.ok(response);
@@ -61,19 +70,19 @@ public class MedicacionController {
     @GetMapping("/{id-medicacion}")
     public ResponseEntity<Medicacion> obtenerMedicacion(@PathVariable("id-medicacion") String idMedicacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerMedicacion(idMedicacion));
+        return ResponseEntity.ok(medicacionService.obtenerMedicacion(idMedicacion));
     }
 
     @PutMapping("/{id-medicacion}")
     public ResponseEntity<Medicacion> actualizarMedicacion(@PathVariable("id-medicacion") String idMedicacion,
             @RequestBody @Valid Medicacion medicacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.actualizarMedicacion(idMedicacion, medicacion));
+        return ResponseEntity.ok(medicacionService.actualizarMedicacion(idMedicacion, medicacion));
     }
 
     @DeleteMapping("/{id-medicacion}")
     public ResponseEntity<String> borrarMedicacion(@PathVariable("id-medicacion") String idMedicacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.borrarMedicacion(idMedicacion));
+        return ResponseEntity.ok(medicacionService.borrarMedicacion(idMedicacion));
     }
 }

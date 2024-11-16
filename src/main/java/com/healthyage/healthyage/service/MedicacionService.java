@@ -1,9 +1,11 @@
 package com.healthyage.healthyage.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
@@ -40,6 +42,27 @@ public class MedicacionService {
         }
 
         return medicaciones;
+    }
+
+    public List<Medicacion> obtenerMedicacionesporUsuario(String idUsuario, LocalDate fecha) throws InterruptedException, ExecutionException {
+        var medicaciones = new ArrayList<Medicacion>();
+        var bdFirestore = FirestoreClient.getFirestore();
+        var futuro = bdFirestore.collection(COLECCION).whereEqualTo("idUsuario", idUsuario).get();
+        var documentos = futuro.get().getDocuments();
+
+        if (documentos != null) {
+            for (var documento : documentos) {
+                medicaciones.add(documento.toObject(Medicacion.class));
+            }
+        }
+
+        return Objects.isNull(fecha) ? medicaciones
+                : medicaciones.stream()
+                        .filter(medicacion -> (fecha.isAfter(LocalDate.parse(medicacion.getFechaInicio()))
+                                || fecha.isEqual(LocalDate.parse(medicacion.getFechaInicio())))
+                                && (fecha.isBefore(LocalDate.parse(medicacion.getFechaFin()))
+                                        || fecha.isEqual(LocalDate.parse(medicacion.getFechaFin()))))
+                        .toList();
     }
 
     public Medicacion guardarMedicacion(Medicacion medicacion)
@@ -140,7 +163,8 @@ public class MedicacionService {
         }
     }
 
-    public static String ajustarTiempoNotificacion(LocalDateTime marcaTiempo, int intervalo, TipoIntervalo tipoIntervalo) {
+    public static String ajustarTiempoNotificacion(LocalDateTime marcaTiempo, int intervalo,
+            TipoIntervalo tipoIntervalo) {
         ChronoUnit unidad;
 
         switch (tipoIntervalo) {

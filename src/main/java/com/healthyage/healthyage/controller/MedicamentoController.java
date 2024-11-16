@@ -28,17 +28,17 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/medicamentos")
 @Tag(name = "Api de medicamentos")
 public class MedicamentoController {
-    private final MedicamentoService servicio;
+    private final MedicamentoService medicamentoService;
 
     @GetMapping("")
     public ResponseEntity<List<Medicamento>> obtenerMedicamentos() throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerMedicamentos());
+        return ResponseEntity.ok(medicamentoService.obtenerMedicamentos());
     }
 
     @PostMapping("")
     public ResponseEntity<Medicamento> guardarMedicamento(@RequestBody @Valid Medicamento medicamento)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.guardarMedicamento(medicamento);
+        var response = medicamentoService.guardarMedicamento(medicamento);
         
         if (response != null)
             return ResponseEntity.ok(response);
@@ -49,19 +49,19 @@ public class MedicamentoController {
     @GetMapping("/{id-medicamento}")
     public ResponseEntity<Medicamento> obtenerMedicamento(@PathVariable("id-medicamento") String idMedicamento)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerMedicamento(idMedicamento));
+        return ResponseEntity.ok(medicamentoService.obtenerMedicamento(idMedicamento));
     }
 
     @PutMapping("/{id-medicamento}")
     public ResponseEntity<Medicamento> actualizarMedicamento(@PathVariable("id-medicamento") String idMedicamento,
             @RequestBody @Valid Medicamento medicamento)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.actualizarMedicamento(idMedicamento, medicamento));
+        return ResponseEntity.ok(medicamentoService.actualizarMedicamento(idMedicamento, medicamento));
     }
 
     @DeleteMapping("/{id-medicamento}")
     public ResponseEntity<String> borrarMedicamento(@PathVariable("id-medicamento") String idMedicamento)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.borrarMedicamento(idMedicamento));
+        return ResponseEntity.ok(medicamentoService.borrarMedicamento(idMedicamento));
     }
 }

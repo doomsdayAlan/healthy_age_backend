@@ -22,7 +22,7 @@ public class OpenAPIConfiguration {
     @Bean
     OpenAPI defineOpenApi() {
         var server = new Server();
-        server.setUrl(serverUrl); // Usa la propiedad configurada
+        server.setUrl(serverUrl);
         server.setDescription(deploymentEnvironment);
 
         var myContact = new Contact();

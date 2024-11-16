@@ -28,23 +28,23 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/usuarios")
 @Tag(name = "Api de usuarios")
 public class UsuarioController {
-    private final UsuarioService servicio;
+    private final UsuarioService usuarioService;
 
     @GetMapping("")
     public ResponseEntity<List<Usuario>> obtenerUsuarios() throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerUsuarios());
+        return ResponseEntity.ok(usuarioService.obtenerUsuarios());
     }
 
     @PostMapping("")
     public ResponseEntity<Usuario> guardarUsuario(@RequestBody @Valid Usuario usuario)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.guardarUsuario(usuario));
+        return ResponseEntity.ok(usuarioService.guardarUsuario(usuario));
     }
 
     @GetMapping("/{id-usuario}")
     public ResponseEntity<Usuario> obtenerUsuario(@PathVariable("id-usuario") String idUsuario)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.obtenerUsuario(idUsuario);
+        var response = usuarioService.obtenerUsuario(idUsuario);
         
         if (response != null)
             return ResponseEntity.ok(response);
@@ -55,12 +55,12 @@ public class UsuarioController {
     @PutMapping("/{id-usuario}")
     public ResponseEntity<Usuario> actualizarUsuario(@PathVariable("id-usuario") String idUsuario, @RequestBody @Valid Usuario usuario)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.actualizarUsuario(idUsuario, usuario));
+        return ResponseEntity.ok(usuarioService.actualizarUsuario(idUsuario, usuario));
     }
 
     @DeleteMapping("/{id-usuario}")
     public ResponseEntity<String> borrarUsuario(@PathVariable("id-usuario") String idUsuario)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.borrarUsuario(idUsuario));
+        return ResponseEntity.ok(usuarioService.borrarUsuario(idUsuario));
     }
 }

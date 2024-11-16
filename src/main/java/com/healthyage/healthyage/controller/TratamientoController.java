@@ -28,23 +28,23 @@ import lombok.AllArgsConstructor;
 @RequestMapping("/tratamientos")
 @Tag(name = "Api de tratamientos")
 public class TratamientoController {
-    private final TratamientoService servicio;
+    private final TratamientoService tratamientoService;
 
     @GetMapping("")
     public ResponseEntity<List<Tratamiento>> obtenerTratamientos() throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.obtenerTratamientos());
+        return ResponseEntity.ok(tratamientoService.obtenerTratamientos());
     }
 
     @PostMapping("")
     public ResponseEntity<Tratamiento> guardarTratamiento(@RequestBody @Valid Tratamiento tratamiento)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.guardarTratamiento(tratamiento));
+        return ResponseEntity.ok(tratamientoService.guardarTratamiento(tratamiento));
     }
 
     @GetMapping("/{id-tratamiento}")
     public ResponseEntity<Tratamiento> obtenerTratamiento(@PathVariable("id-tratamiento") String idTratamiento)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.obtenerTratamiento(idTratamiento);
+        var response = tratamientoService.obtenerTratamiento(idTratamiento);
         
         if (response != null)
             return ResponseEntity.ok(response);
@@ -56,7 +56,7 @@ public class TratamientoController {
     public ResponseEntity<List<Tratamiento>> obtenerTratamientosPorUsuario(
             @PathVariable("id-usuario") String idUsuario)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        var response = servicio.obtenerTratamientosPorUsuario(idUsuario);
+        var response = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
 
         return ResponseEntity.ok(response);
     }
@@ -65,12 +65,12 @@ public class TratamientoController {
     public ResponseEntity<Tratamiento> actualizarTratamiento(@PathVariable("id-tratamiento") String idTratamiento,
             @RequestBody @Valid Tratamiento tratamiento)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.actualizarTratamiento(idTratamiento, tratamiento));
+        return ResponseEntity.ok(tratamientoService.actualizarTratamiento(idTratamiento, tratamiento));
     }
 
     @DeleteMapping("/{id-tratamiento}")
     public ResponseEntity<String> borrarTratamiento(@PathVariable("id-tratamiento") String idTratamiento)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(servicio.borrarTratamiento(idTratamiento));
+        return ResponseEntity.ok(tratamientoService.borrarTratamiento(idTratamiento));
     }
 }
