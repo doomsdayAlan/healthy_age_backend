@@ -35,9 +35,3 @@ build/
 ### Secrets ###
 .env
 !**/serviceAccount.json
-
-### Firebase ###
-dataconnect/
-.firebase/
-firebase.json
-.firebaserc
