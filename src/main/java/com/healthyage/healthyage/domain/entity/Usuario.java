@@ -17,6 +17,8 @@ import lombok.Builder.Default;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Usuario {
+    public static final String PATH = "usuario";
+    
     @JsonProperty(value = "id_usuario", access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "Id del usuario", example = "K1r2bz38FEgRTudHUMHx")
     private String idUsuario;

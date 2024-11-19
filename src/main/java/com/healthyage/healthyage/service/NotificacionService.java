@@ -1,26 +1,27 @@
 package com.healthyage.healthyage.service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
 
-import com.google.firebase.cloud.FirestoreClient;
+import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Notificacion;
+import com.healthyage.healthyage.domain.enumeration.TipoIntervalo;
 
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class NotificacionService {
-    private static final String COLECCION = "notificacion";
+    private final Firestore firestore;
 
     public List<Notificacion> obtenerNotificaciones() throws InterruptedException, ExecutionException {
         var notificaciones = new ArrayList<Notificacion>();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var futuro = bdFirestore.collection(COLECCION).get();
+        var futuro = firestore.collection(Notificacion.PATH).get();
         var documentos = futuro.get().getDocuments();
 
         if (documentos != null) {
@@ -34,8 +35,7 @@ public class NotificacionService {
 
     public Notificacion guardarNotificacion(Notificacion notificacion)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document();
+        var documento = firestore.collection(Notificacion.PATH).document();
         notificacion.setIdNotificacion(documento.getId());
         var futuro = documento.set(notificacion);
         var result = futuro.get();
@@ -49,8 +49,7 @@ public class NotificacionService {
 
     public Notificacion obtenerNotificacion(String idNotificacion)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idNotificacion);
+        var referenciaDocumento = firestore.collection(Notificacion.PATH).document(idNotificacion);
         var futuro = referenciaDocumento.get();
         var documento = futuro.get();
 
@@ -59,8 +58,7 @@ public class NotificacionService {
 
     public Notificacion obtenerNotificacionPorTratamiento(String idTratamiento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumentos = bdFirestore.collection(COLECCION).whereEqualTo("idTratamiento", idTratamiento).get()
+        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo("idTratamiento", idTratamiento).get()
                 .get().getDocuments();
 
         return referenciaDocumentos.stream()
@@ -70,14 +68,13 @@ public class NotificacionService {
     public Notificacion actualizarNotificacion(String idNotificacion, Notificacion notificacion, boolean pospuesto,
             boolean aceptado)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idNotificacion);
+        var documento = firestore.collection(Notificacion.PATH).document(idNotificacion);
         var marcaTiempo = notificacion.getMarcaTiempo();
 
         if (pospuesto) {
             marcaTiempo = LocalDateTime.parse(notificacion.getMarcaTiempo()).plusMinutes(10).toString();
         } else if (aceptado) {
-            marcaTiempo =  MedicacionService.ajustarTiempoNotificacion(LocalDateTime.now(), notificacion.getIntervalo(),
+            marcaTiempo = ajustarTiempoNotificacion(LocalDateTime.now(), notificacion.getIntervalo(),
                         notificacion.getTipoIntervalo());
         }
 
@@ -95,8 +92,7 @@ public class NotificacionService {
     }
 
     public String borrarNotificacion(String idNotificacion) throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idNotificacion);
+        var documento = firestore.collection(Notificacion.PATH).document(idNotificacion);
         var futuro = documento.delete();
         var result = futuro.get();
 
@@ -106,5 +102,20 @@ public class NotificacionService {
         } else {
             throw new ExecutionException("Error al borrar el notificacion: resultado nulo", null);
         }
+    }
+
+    public static String ajustarTiempoNotificacion(LocalDateTime marcaTiempo, int intervalo,
+            TipoIntervalo tipoIntervalo) {
+        ChronoUnit unidad;
+
+        switch (tipoIntervalo) {
+            case MINUTOS -> unidad = ChronoUnit.MINUTES;
+            case HORAS -> unidad = ChronoUnit.HOURS;
+            case DIAS -> unidad = ChronoUnit.DAYS;
+            case SEMANAS -> unidad = ChronoUnit.WEEKS;
+            default -> throw new IllegalArgumentException("Tipo de intervalo no soportado");
+        }
+
+        return marcaTiempo.plus(intervalo, unidad).toString();
     }
 }

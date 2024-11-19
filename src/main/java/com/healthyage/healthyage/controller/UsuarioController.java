@@ -17,6 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
+import com.healthyage.healthyage.service.MedicacionService;
+import com.healthyage.healthyage.service.NotificacionService;
+import com.healthyage.healthyage.service.TratamientoService;
 import com.healthyage.healthyage.service.UsuarioService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,6 +32,9 @@ import lombok.AllArgsConstructor;
 @Tag(name = "Api de usuarios")
 public class UsuarioController {
     private final UsuarioService usuarioService;
+    private final NotificacionService notificacionService;
+    private final MedicacionService medicacionService;
+    private final TratamientoService tratamientoService;
 
     @GetMapping("")
     public ResponseEntity<List<Usuario>> obtenerUsuarios() throws InterruptedException, ExecutionException {

@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 public class EmailService {
     private final JavaMailSender mailSender;
 
-    public void sendEmail(String to, String subject, String body) {
+    public void enviarEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);

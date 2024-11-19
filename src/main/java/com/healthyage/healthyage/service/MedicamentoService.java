@@ -6,17 +6,19 @@ import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
 
-import com.google.firebase.cloud.FirestoreClient;
+import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Medicamento;
 
+import lombok.AllArgsConstructor;
+
 @Service
+@AllArgsConstructor
 public class MedicamentoService {
-    private static final String COLECCION = "medicamento";
+    private final Firestore firestore;
 
     public List<Medicamento> obtenerMedicamentos() throws InterruptedException, ExecutionException {
         var medicamentos = new ArrayList<Medicamento>();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var futuro = bdFirestore.collection(COLECCION).get();
+        var futuro = firestore.collection(Medicamento.PATH).get();
         var documentos = futuro.get().getDocuments();
 
         if (documentos != null) {
@@ -30,8 +32,7 @@ public class MedicamentoService {
 
     public Medicamento guardarMedicamento(Medicamento medicamento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document();
+        var documento = firestore.collection(Medicamento.PATH).document();
         medicamento.setIdMedicamento(documento.getId());
         var futuro = documento.set(medicamento);
         var result = futuro.get();
@@ -45,8 +46,7 @@ public class MedicamentoService {
 
     public Medicamento obtenerMedicamento(String idMedicamento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idMedicamento);
+        var referenciaDocumento = firestore.collection(Medicamento.PATH).document(idMedicamento);
         var futuro = referenciaDocumento.get();
         var documento = futuro.get();
 
@@ -55,8 +55,7 @@ public class MedicamentoService {
 
     public Medicamento actualizarMedicamento(String idMedicamento, Medicamento medicamento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idMedicamento);
+        var documento = firestore.collection(Medicamento.PATH).document(idMedicamento);
         medicamento.setIdMedicamento(idMedicamento);
         var futuro = documento.set(medicamento);
         var result = futuro.get();
@@ -69,8 +68,7 @@ public class MedicamentoService {
     }
 
     public String borrarMedicamento(String idMedicamento) throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idMedicamento);
+        var documento = firestore.collection(Medicamento.PATH).document(idMedicamento);
         var futuro = documento.delete();
         var result = futuro.get();
 

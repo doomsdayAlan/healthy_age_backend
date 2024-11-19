@@ -1,8 +1,6 @@
 package com.healthyage.healthyage.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -10,29 +8,18 @@ import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
 
-import com.google.firebase.cloud.FirestoreClient;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Medicacion;
-import com.healthyage.healthyage.domain.entity.Notificacion;
-import com.healthyage.healthyage.domain.enumeration.TipoIntervalo;
-import com.healthyage.healthyage.domain.enumeration.TipoNotificacion;
-
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class MedicacionService {
-    private final TratamientoService tratamientoService;
-    private final NotificacionService notificacionService;
-    private final UsuarioService usuarioService;
-
-    private static final String COLECCION = "medicacion";
+    private final Firestore firestore;
 
     public List<Medicacion> obtenerMedicaciones() throws InterruptedException, ExecutionException {
         var medicaciones = new ArrayList<Medicacion>();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var futuro = bdFirestore.collection(COLECCION).get();
+        var futuro = firestore.collection(Medicacion.PATH).get();
         var documentos = futuro.get().getDocuments();
 
         if (documentos != null) {
@@ -46,8 +33,7 @@ public class MedicacionService {
 
     public List<Medicacion> obtenerMedicacionesporUsuario(String idUsuario, LocalDate fecha) throws InterruptedException, ExecutionException {
         var medicaciones = new ArrayList<Medicacion>();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var futuro = bdFirestore.collection(COLECCION).whereEqualTo("idUsuario", idUsuario).get();
+        var futuro = firestore.collection(Medicacion.PATH).whereEqualTo("idUsuario", idUsuario).get();
         var documentos = futuro.get().getDocuments();
 
         if (documentos != null) {
@@ -67,8 +53,7 @@ public class MedicacionService {
 
     public Medicacion guardarMedicacion(Medicacion medicacion)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document();
+        var documento = firestore.collection(Medicacion.PATH).document();
         medicacion.setIdMedicacion(documento.getId());
         var futuro = documento.set(medicacion);
         var result = futuro.get();
@@ -80,54 +65,9 @@ public class MedicacionService {
         }
     }
 
-    public List<String> guardarMedicacionPorTratamiento(String idTratamiento, Medicacion nuevaMedicacion)
-            throws InterruptedException, ExecutionException {
-        var medicacion = guardarMedicacion(nuevaMedicacion);
-        var tratamiento = tratamientoService.obtenerTratamiento(idTratamiento);
-        var usuario = usuarioService.obtenerUsuario(tratamiento.getIdUsuario());
-        var gson = new Gson();
-        var medicaciones = new ArrayList<String>(
-                gson.fromJson(tratamiento.getIdMedicaciones(), new TypeToken<List<String>>() {
-                }.getType()));
-
-        medicaciones.add(medicacion.getIdMedicacion());
-        tratamiento.setIdMedicaciones(gson.toJson(medicaciones));
-        tratamientoService.actualizarTratamiento(idTratamiento, tratamiento);
-
-        var marcaTiempo = TipoNotificacion.RECORDATORIO_MEDICACION;
-        var notificacionMedicacion = Notificacion.builder()
-                .idTratamiento(idTratamiento)
-                .idMedicacion(medicacion.getIdMedicacion())
-                .idCuidador(usuario.getIdCuidador())
-                .intervalo(medicacion.getIntervalo())
-                .tipoIntervalo(medicacion.getTipoIntervalo())
-                .marcaTiempo(ajustarTiempoNotificacion(
-                        LocalDateTime.parse(medicacion.getFechaInicio() + "T" + medicacion.getHoraInicio()),
-                        medicacion.getIntervalo(), medicacion.getTipoIntervalo()))
-                .tipoNotificacion(marcaTiempo)
-                .build();
-
-        notificacionService.guardarNotificacion(notificacionMedicacion);
-
-        if (medicacion.getRecordatorio() == 1) {
-            var notificacionExistencia = Notificacion.builder()
-                    .idTratamiento(idTratamiento)
-                    .idMedicacion(medicacion.getIdMedicacion())
-                    .idCuidador(usuario.getIdCuidador())
-                    .marcaTiempo("9999-12-31T23:59:59")
-                    .tipoNotificacion(marcaTiempo)
-                    .build();
-
-            notificacionService.guardarNotificacion(notificacionExistencia);
-        }
-
-        return medicaciones;
-    }
-
     public Medicacion obtenerMedicacion(String idMedicacion)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idMedicacion);
+        var referenciaDocumento = firestore.collection(Medicacion.PATH).document(idMedicacion);
         var futuro = referenciaDocumento.get();
         var documento = futuro.get();
 
@@ -136,8 +76,7 @@ public class MedicacionService {
 
     public Medicacion actualizarMedicacion(String idMedicacion, Medicacion medicacion)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idMedicacion);
+        var documento = firestore.collection(Medicacion.PATH).document(idMedicacion);
         medicacion.setIdMedicamento(idMedicacion);
         var futuro = documento.set(medicacion);
         var result = futuro.get();
@@ -150,8 +89,7 @@ public class MedicacionService {
     }
 
     public String borrarMedicacion(String idMedicacion) throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idMedicacion);
+        var documento = firestore.collection(Medicacion.PATH).document(idMedicacion);
         var futuro = documento.delete();
         var result = futuro.get();
 
@@ -161,20 +99,5 @@ public class MedicacionService {
         } else {
             throw new ExecutionException("Error al borrar la medicacion: resultado nulo", null);
         }
-    }
-
-    public static String ajustarTiempoNotificacion(LocalDateTime marcaTiempo, int intervalo,
-            TipoIntervalo tipoIntervalo) {
-        ChronoUnit unidad;
-
-        switch (tipoIntervalo) {
-            case MINUTOS -> unidad = ChronoUnit.MINUTES;
-            case HORAS -> unidad = ChronoUnit.HOURS;
-            case DIAS -> unidad = ChronoUnit.DAYS;
-            case SEMANAS -> unidad = ChronoUnit.WEEKS;
-            default -> throw new IllegalArgumentException("Tipo de intervalo no soportado");
-        }
-
-        return marcaTiempo.plus(intervalo, unidad).toString();
     }
 }

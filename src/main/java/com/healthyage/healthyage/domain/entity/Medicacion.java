@@ -20,6 +20,8 @@ import lombok.Builder.Default;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Medicacion {
+    public static final String PATH = "medicacion";
+
     @JsonProperty(value = "id_medicacion", access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "Id de la medicación", example = "K1r2bz38FEgRTudHUMHx")
     private String idMedicacion;

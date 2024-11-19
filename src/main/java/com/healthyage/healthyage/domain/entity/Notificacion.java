@@ -19,6 +19,8 @@ import lombok.Builder.Default;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Notificacion {
+    public static final String PATH = "notificacion";
+
     @JsonProperty(value = "id_notificacion", access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "Id de la notificación", example = "K1r2bz38FEgRTudHUMHx")
     private String idNotificacion;

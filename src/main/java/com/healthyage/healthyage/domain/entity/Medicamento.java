@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Medicamento {
+    public static final String PATH = "medicamento";
+
     @JsonProperty(value = "id_medicamento", access = JsonProperty.Access.READ_ONLY)
     @Schema(description = "Id del medicamento", example = "K1r2bz38FEgRTudHUMHx")
     private String idMedicamento;

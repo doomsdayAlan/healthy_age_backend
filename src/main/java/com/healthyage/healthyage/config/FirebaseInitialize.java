@@ -4,13 +4,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import jakarta.annotation.PostConstruct;
 import com.google.auth.oauth2.GoogleCredentials;
-
+import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.cloud.FirestoreClient;
 import com.google.gson.JsonObject;
+
+import jakarta.annotation.PreDestroy;
 
 @Configuration
 public class FirebaseInitialize {
@@ -37,9 +40,8 @@ public class FirebaseInitialize {
     @Value("${firebase.universe-domain}")
     private String universeDomain;
 
-    @PostConstruct
-    public void initialize() throws IOException {
-        // Verifica si Firebase ya ha sido inicializado
+    @Bean
+    Firestore firestore() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
             var jsonObject = new JsonObject();
             jsonObject.addProperty("type", type);
@@ -53,14 +55,22 @@ public class FirebaseInitialize {
             jsonObject.addProperty("auth_provider_x509_cert_url", authProviderX509CertUrl);
             jsonObject.addProperty("client_x509_cert_url", clientX509CertUrl);
             jsonObject.addProperty("universe_domain", universeDomain);
+            var credentials = new ByteArrayInputStream(jsonObject.toString().getBytes());
 
-            var refreshToken = new ByteArrayInputStream(jsonObject.toString().getBytes());
-
-            var options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(refreshToken))
+            var firebaseOptions = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(credentials))
                     .build();
 
-            FirebaseApp.initializeApp(options);
+            FirebaseApp.initializeApp(firebaseOptions);
+        }
+
+        return FirestoreClient.getFirestore(); 
+    }
+
+    @PreDestroy
+    public void cleanUp() {
+        if (!FirebaseApp.getApps().isEmpty()) {
+            FirebaseApp.getInstance().delete();
         }
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 
-import com.google.firebase.cloud.FirestoreClient;
+import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Tratamiento;
 
 import lombok.AllArgsConstructor;
@@ -13,12 +13,11 @@ import lombok.AllArgsConstructor;
 @Service
 @AllArgsConstructor
 public class TratamientoService {
-    private static final String COLECCION = "tratamiento";
+    private final Firestore firestore;
 
     public List<Tratamiento> obtenerTratamientos() throws InterruptedException, ExecutionException {
         var tratamientos = new ArrayList<Tratamiento>();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var futuro = bdFirestore.collection(COLECCION).get();
+        var futuro = firestore.collection(Tratamiento.PATH).get();
         var documentos = futuro.get().getDocuments();
 
         if (documentos != null) {
@@ -32,8 +31,7 @@ public class TratamientoService {
 
     public Tratamiento guardarTratamiento(Tratamiento tratamiento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document();
+        var documento = firestore.collection(Tratamiento.PATH).document();
         tratamiento.setIdTratamiento(documento.getId());
         var futuro = documento.set(tratamiento);
         var result = futuro.get();
@@ -47,8 +45,7 @@ public class TratamientoService {
 
     public Tratamiento obtenerTratamiento(String idTratamiento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idTratamiento);
+        var referenciaDocumento = firestore.collection(Tratamiento.PATH).document(idTratamiento);
         var futuro = referenciaDocumento.get();
         var documento = futuro.get();
 
@@ -57,8 +54,7 @@ public class TratamientoService {
 
     public List<Tratamiento> obtenerTratamientosPorUsuario(String idUsuario)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumentos = bdFirestore.collection(COLECCION).whereEqualTo("idUsuario", idUsuario).get()
+        var referenciaDocumentos = firestore.collection(Tratamiento.PATH).whereEqualTo("idUsuario", idUsuario).get()
                 .get().getDocuments();
 
         return referenciaDocumentos.stream()
@@ -67,8 +63,7 @@ public class TratamientoService {
 
     public Tratamiento actualizarTratamiento(String idTratamiento, Tratamiento tratamiento)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idTratamiento);
+        var documento = firestore.collection(Tratamiento.PATH).document(idTratamiento);
         tratamiento.setIdTratamiento(idTratamiento);
         var futuro = documento.set(tratamiento);
         var result = futuro.get();
@@ -81,8 +76,7 @@ public class TratamientoService {
     }
 
     public String borrarTratamiento(String idTratamiento) throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idTratamiento);
+        var documento = firestore.collection(Tratamiento.PATH).document(idTratamiento);
         var futuro = documento.delete();
         var result = futuro.get();
 

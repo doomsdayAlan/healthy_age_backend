@@ -6,24 +6,22 @@ import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
 
-import com.google.firebase.cloud.FirestoreClient;
+import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.DuplicatedObjectException;
-import com.healthyage.healthyage.util.OTPGenerator;
+import com.healthyage.healthyage.util.GeneradorOTP;
 
 import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
 public class UsuarioService {
+    private final Firestore firestore;
     private final EmailService emailService;
-    
-    private static final String COLECCION = "usuario";
 
     public List<Usuario> obtenerUsuarios() throws InterruptedException, ExecutionException {
         var usuarios = new ArrayList<Usuario>();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var futuro = bdFirestore.collection(COLECCION).get();
+        var futuro = firestore.collection(Usuario.PATH).get();
         var documentos = futuro.get().getDocuments();
 
         if (documentos != null) {
@@ -38,24 +36,22 @@ public class UsuarioService {
     public Usuario guardarUsuario(Usuario usuario)
             throws InterruptedException, ExecutionException {
         var correo = usuario.getCorreo();
-        var correoNoVerificado = "unverified:" + usuario.getCorreo();
-        var bdFirestore = FirestoreClient.getFirestore();
-        var usuariosExistente = bdFirestore.collection(COLECCION).whereEqualTo("correo", correo)
-                .whereEqualTo("correo", correoNoVerificado)
+        var otp = GeneradorOTP.generarOTP();
+        var usuariosExistente = firestore.collection(Usuario.PATH).whereArrayContains("correo", correo)
                 .whereEqualTo("numero", usuario.getTelefono()).get().get().getDocuments();
 
         if (!usuariosExistente.isEmpty()) {
             throw new DuplicatedObjectException("El correo o número de teléfono ya está registrado");
         }
 
-        var documento = bdFirestore.collection(COLECCION).document();
+        var documento = firestore.collection(Usuario.PATH).document();
         usuario.setIdUsuario(documento.getId());
-        usuario.setCorreo(correoNoVerificado);
+        usuario.setCorreo(String.format("unverified:%s:%s", otp, correo));
         var futuro = documento.set(usuario);
         var result = futuro.get();
 
         if (result != null) {
-            emailService.sendEmail(correo, "Tu clave de verificación", OTPGenerator.generateOTP());
+            emailService.enviarEmail(correo, "Tu clave de verificación", otp);
             return usuario;
         } else {
             throw new ExecutionException("Error al guardar el usuario: resultado nulo", null);
@@ -63,8 +59,7 @@ public class UsuarioService {
     }
 
     public Usuario obtenerUsuario(String idUsuario) throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var referenciaDocumento = bdFirestore.collection(COLECCION).document(idUsuario);
+        var referenciaDocumento = firestore.collection(Usuario.PATH).document(idUsuario);
         var futuro = referenciaDocumento.get();
         var documento = futuro.get();
 
@@ -73,8 +68,7 @@ public class UsuarioService {
 
     public Usuario actualizarUsuario(String idUsuario, Usuario usuario)
             throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idUsuario);
+        var documento = firestore.collection(Usuario.PATH).document(idUsuario);
         usuario.setIdUsuario(idUsuario);
         var futuro = documento.set(usuario);
         var result = futuro.get();
@@ -87,8 +81,7 @@ public class UsuarioService {
     }
 
     public String borrarUsuario(String idUsuario) throws InterruptedException, ExecutionException {
-        var bdFirestore = FirestoreClient.getFirestore();
-        var documento = bdFirestore.collection(COLECCION).document(idUsuario);
+        var documento = firestore.collection(Usuario.PATH).document(idUsuario);
         var futuro = documento.delete();
         var result = futuro.get();
 
