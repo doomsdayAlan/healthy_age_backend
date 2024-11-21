@@ -2,6 +2,7 @@ package com.healthyage.healthyage.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
@@ -21,11 +22,9 @@ public class MedicamentoService {
         var futuro = firestore.collection(Medicamento.PATH).get();
         var documentos = futuro.get().getDocuments();
 
-        if (documentos != null) {
-            for (var documento : documentos) {
+        if (Objects.nonNull(documentos))
+            for (var documento : documentos)
                 medicamentos.add(documento.toObject(Medicamento.class));
-            }
-        }
 
         return medicamentos;
     }
@@ -37,11 +36,10 @@ public class MedicamentoService {
         var futuro = documento.set(medicamento);
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return medicamento;
-        } else {
+        else
             throw new ExecutionException("Error al guardar el medicamento: resultado nulo", null);
-        }
     }
 
     public Medicamento obtenerMedicamento(String idMedicamento)
@@ -60,11 +58,10 @@ public class MedicamentoService {
         var futuro = documento.set(medicamento);
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return medicamento;
-        } else {
+        else
             throw new ExecutionException("Error al actualizar el medicamento: resultado nulo", null);
-        }
     }
 
     public String borrarMedicamento(String idMedicamento) throws InterruptedException, ExecutionException {
@@ -72,11 +69,10 @@ public class MedicamentoService {
         var futuro = documento.delete();
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return "Medicamento con ID " + idMedicamento + " borrado con éxito a las: "
                     + result.getUpdateTime();
-        } else {
+        else
             throw new ExecutionException("Error al borrar el medicamento: resultado nulo", null);
-        }
     }
 }

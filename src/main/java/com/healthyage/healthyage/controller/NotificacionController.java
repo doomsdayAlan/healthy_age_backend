@@ -20,6 +20,7 @@ import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.NotificacionService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -30,18 +31,27 @@ import lombok.AllArgsConstructor;
 @Tag(name = "Api de notificaciones")
 public class NotificacionController {
     private final NotificacionService notificacionService;
-
+    
+    @Operation(summary = "Obtener todas las notificaciones", description = """
+            Retorna una colección con todas las notificaciones de la base de datos
+            """)
     @GetMapping("")
     public ResponseEntity<List<Notificacion>> obtenerNotificaciones() throws InterruptedException, ExecutionException {
         return ResponseEntity.ok(notificacionService.obtenerNotificaciones());
     }
 
+    @Operation(summary = "Guardar medicamento", description = """
+            Retorna un objeto de tipo Notificación con los mismos datos ingresados además de incluir el id del objeto guardado en la base de datos
+            """)
     @PostMapping("")
     public ResponseEntity<Notificacion> guardarNotificacion(@RequestBody @Valid Notificacion notificacion)
             throws InterruptedException, ExecutionException {
         return ResponseEntity.ok(notificacionService.guardarNotificacion(notificacion));
     }
 
+    @Operation(summary = "Obtener notificación por id", description = """
+            Retorna el objeto Notificación relacionado con el id dado del documento
+            """)
     @GetMapping("/{id-notificacion}")
     public ResponseEntity<Notificacion> obtenerNotificacion(@PathVariable("id-notificacion") String idNotificacion)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
@@ -53,6 +63,9 @@ public class NotificacionController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "La notificación no existe");
     }
 
+    @Operation(summary = "Actualizar notificación", description = """
+            Retorna un objeto de tipo Notificación con los mismos datos ingresados y actualizados
+            """)
     @PutMapping("/{id-notificacion}")
     public ResponseEntity<Notificacion> actualizarNotificacion(@PathVariable("id-notificacion") String idNotificacion,
             @RequestParam(defaultValue = "false") boolean pospuesto,
@@ -62,6 +75,9 @@ public class NotificacionController {
         return ResponseEntity.ok(notificacionService.actualizarNotificacion(idNotificacion, notificacion, pospuesto, aceptado));
     }
 
+    @Operation(summary = "Eliminar notificación", description = """
+            Retorna un string con el timestamp del momento en el que el registro fue eliminado
+            """)
     @DeleteMapping("/{id-notificacion}")
     public ResponseEntity<String> borrarNotificacion(@PathVariable("id-notificacion") String idNotificacion)
             throws InterruptedException, ExecutionException {

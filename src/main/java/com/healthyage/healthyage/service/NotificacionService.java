@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
@@ -40,11 +41,10 @@ public class NotificacionService {
         var futuro = documento.set(notificacion);
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return notificacion;
-        } else {
+        else
             throw new ExecutionException("Error al guardar el notificacion: resultado nulo", null);
-        }
     }
 
     public Notificacion obtenerNotificacion(String idNotificacion)
@@ -56,13 +56,26 @@ public class NotificacionService {
         return documento.exists() ? documento.toObject(Notificacion.class) : null;
     }
 
-    public Notificacion obtenerNotificacionPorTratamiento(String idTratamiento)
+    public Notificacion obtenerNotificacionPorMedicacion(String idMedicacion)
             throws InterruptedException, ExecutionException {
-        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo("idTratamiento", idTratamiento).get()
+        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo("idMedicacion", idMedicacion)
+                .get()
+                .get().getDocuments();
+
+        var documentos = referenciaDocumentos.stream()
+                .map(doc -> doc.toObject(Notificacion.class)).toList();
+        
+        return documentos.isEmpty() ? documentos.get(0) : null;
+    }
+
+    public List<Notificacion> obtenerNotificacionesPorParametro(String parametro, String idTratamiento)
+            throws InterruptedException, ExecutionException {
+        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo(parametro, idTratamiento)
+                .get()
                 .get().getDocuments();
 
         return referenciaDocumentos.stream()
-                .map(doc -> doc.toObject(Notificacion.class)).toList().get(0);
+                .map(doc -> doc.toObject(Notificacion.class)).toList();
     }
 
     public Notificacion actualizarNotificacion(String idNotificacion, Notificacion notificacion, boolean pospuesto,
@@ -71,12 +84,11 @@ public class NotificacionService {
         var documento = firestore.collection(Notificacion.PATH).document(idNotificacion);
         var marcaTiempo = notificacion.getMarcaTiempo();
 
-        if (pospuesto) {
+        if (pospuesto)
             marcaTiempo = LocalDateTime.parse(notificacion.getMarcaTiempo()).plusMinutes(10).toString();
-        } else if (aceptado) {
+        else if (aceptado)
             marcaTiempo = ajustarTiempoNotificacion(LocalDateTime.now(), notificacion.getIntervalo(),
-                        notificacion.getTipoIntervalo());
-        }
+                    notificacion.getTipoIntervalo());
 
         notificacion.setIdNotificacion(idNotificacion);
         notificacion.setMarcaTiempo(marcaTiempo);
@@ -84,11 +96,10 @@ public class NotificacionService {
         var futuro = documento.set(notificacion);
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return notificacion;
-        } else {
+        else
             throw new ExecutionException("Error al actualizar el notificacion: resultado nulo", null);
-        }
     }
 
     public String borrarNotificacion(String idNotificacion) throws InterruptedException, ExecutionException {
@@ -96,12 +107,11 @@ public class NotificacionService {
         var futuro = documento.delete();
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return "Notificacion con ID " + idNotificacion + " borrado con éxito a las: "
                     + result.getUpdateTime();
-        } else {
+        else
             throw new ExecutionException("Error al borrar el notificacion: resultado nulo", null);
-        }
     }
 
     public static String ajustarTiempoNotificacion(LocalDateTime marcaTiempo, int intervalo,

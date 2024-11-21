@@ -2,6 +2,7 @@ package com.healthyage.healthyage.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
@@ -24,11 +25,9 @@ public class UsuarioService {
         var futuro = firestore.collection(Usuario.PATH).get();
         var documentos = futuro.get().getDocuments();
 
-        if (documentos != null) {
-            for (var documento : documentos) {
+        if (Objects.nonNull(documentos))
+            for (var documento : documentos)
                 usuarios.add(documento.toObject(Usuario.class));
-            }
-        }
 
         return usuarios;
     }
@@ -40,9 +39,8 @@ public class UsuarioService {
         var usuariosExistente = firestore.collection(Usuario.PATH).whereArrayContains("correo", correo)
                 .whereEqualTo("numero", usuario.getTelefono()).get().get().getDocuments();
 
-        if (!usuariosExistente.isEmpty()) {
+        if (!usuariosExistente.isEmpty())
             throw new DuplicatedObjectException("El correo o número de teléfono ya está registrado");
-        }
 
         var documento = firestore.collection(Usuario.PATH).document();
         usuario.setIdUsuario(documento.getId());
@@ -50,7 +48,7 @@ public class UsuarioService {
         var futuro = documento.set(usuario);
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result)) {
             emailService.enviarEmail(correo, "Tu clave de verificación", otp);
             return usuario;
         } else {
@@ -73,11 +71,10 @@ public class UsuarioService {
         var futuro = documento.set(usuario);
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return usuario;
-        } else {
+        else
             throw new ExecutionException("Error al actualizar el usuario: resultado nulo", null);
-        }
     }
 
     public String borrarUsuario(String idUsuario) throws InterruptedException, ExecutionException {
@@ -85,10 +82,9 @@ public class UsuarioService {
         var futuro = documento.delete();
         var result = futuro.get();
 
-        if (result != null) {
+        if (Objects.nonNull(result))
             return "Usuario con ID " + idUsuario + " borrado con éxito a las: " + result.getUpdateTime();
-        } else {
+        else
             throw new ExecutionException("Error al borrar el usuario: resultado nulo", null);
-        }
     }
 }
