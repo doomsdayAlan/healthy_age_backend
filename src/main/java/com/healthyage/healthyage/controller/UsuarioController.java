@@ -1,7 +1,10 @@
 package com.healthyage.healthyage.controller;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.MedicacionService;
@@ -30,11 +34,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @AllArgsConstructor
 @RequestMapping("/usuarios")
 @Tag(name = "Api de usuarios")
+@Slf4j
 public class UsuarioController {
     private final UsuarioService usuarioService;
     private final NotificacionService notificacionService;
@@ -88,23 +94,77 @@ public class UsuarioController {
     @DeleteMapping("/{id-usuario}")
     public ResponseEntity<String> borrarUsuario(@PathVariable("id-usuario") String idUsuario)
             throws InterruptedException, ExecutionException {
-        var response = usuarioService.borrarUsuario(idUsuario);
-        var tratamientos = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
         var objectMapper = new ObjectMapper();
+        var tratamientos = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
         var idsMedicaciones = tratamientos.stream()
-                .flatMap(tratamiento -> {
-                    try {
-                        return objectMapper.readValue(
-                                tratamiento.getIdMedicaciones(),
-                                new TypeReference<List<String>>() {
-                                }).stream();
-                    } catch (JsonProcessingException e) {
-                        return Stream.empty();
-                    }
+                .flatMap(tratamiento -> safeParseMedicaciones(objectMapper, tratamiento.getIdMedicaciones()))
+                .collect(Collectors.toSet());
+        var notificaciones = new HashSet<Notificacion>();
 
-                })
-                .toList();
-        // TODO: borrar los registros
+        notificaciones.addAll(idsMedicaciones.stream()
+                .map(this::safeObtenerNotificacionPorMedicacion)
+                .filter(Objects::nonNull)
+                .toList());
+        notificaciones.addAll(tratamientos.stream()
+                .flatMap(tratamiento -> safeObtenerNotificacionesPorParametro(
+                        "id_tratamiento", tratamiento.getIdTratamiento()))
+                .toList());
+        notificaciones.addAll(notificacionService.obtenerNotificacionesPorParametro("id_cuidador", idUsuario));
+
+        var response = usuarioService.borrarUsuario(idUsuario);
+        tratamientos.forEach(tratamiento -> safeBorrarTratamiento(tratamiento.getIdTratamiento()));
+        idsMedicaciones.forEach(this::safeBorrarMedicacion);
+        notificaciones.forEach(notificacion -> safeBorrarNotificacion(notificacion.getIdNotificacion()));
+
         return ResponseEntity.ok(response);
+    }
+
+    private Stream<String> safeParseMedicaciones(ObjectMapper objectMapper, String json) {
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {
+            }).stream();
+        } catch (JsonProcessingException e) {
+            return Stream.empty();
+        }
+    }
+
+    private Notificacion safeObtenerNotificacionPorMedicacion(String idMedicacion) {
+        try {
+            return notificacionService.obtenerNotificacionPorMedicacion(idMedicacion);
+        } catch (InterruptedException | ExecutionException e) {
+            return null;
+        }
+    }
+
+    private Stream<Notificacion> safeObtenerNotificacionesPorParametro(String parametro, String valor) {
+        try {
+            return notificacionService.obtenerNotificacionesPorParametro(parametro, valor).stream();
+        } catch (InterruptedException | ExecutionException e) {
+            return Stream.empty();
+        }
+    }
+
+    private void safeBorrarTratamiento(String idTratamiento) {
+        try {
+            tratamientoService.borrarTratamiento(idTratamiento);
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getLocalizedMessage());
+        }
+    }
+
+    private void safeBorrarMedicacion(String idMedicacion) {
+        try {
+            medicacionService.borrarMedicacion(idMedicacion);
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getLocalizedMessage());
+        }
+    }
+
+    private void safeBorrarNotificacion(String idNotificacion) {
+        try {
+            notificacionService.borrarNotificacion(idNotificacion);
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getLocalizedMessage());
+        }
     }
 }
