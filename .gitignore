@@ -41,4 +41,4 @@ build/
 .firebase
 dataconnect
 .firebaserc
-.firebase.json
+firebase.json
