@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
-
+import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -31,6 +28,7 @@ import com.healthyage.healthyage.service.MedicacionService;
 import com.healthyage.healthyage.service.NotificacionService;
 import com.healthyage.healthyage.service.TratamientoService;
 import com.healthyage.healthyage.service.UsuarioService;
+import com.healthyage.healthyage.util.ParseoSeguroUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -65,27 +63,13 @@ public class MedicacionController {
         var tratamientos = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
         var objectMapper = new ObjectMapper();
         var idsMedicaciones = tratamientos.stream()
-                .flatMap(tratamiento -> {
-                    try {
-                        return objectMapper.readValue(
-                                tratamiento.getIdMedicaciones(),
-                                new TypeReference<List<String>>() {
-                                }).stream();
-                    } catch (JsonProcessingException e) {
-                        return Stream.empty();
-                    }
-                })
-                .toList();
+                .flatMap(tratamiento -> ParseoSeguroUtil.safeParseMedicaciones(objectMapper,
+                        tratamiento.getIdMedicaciones()))
+                .collect(Collectors.toSet());
 
         var medicaciones = idsMedicaciones.stream()
                 .distinct()
-                .map(idMedicacion -> {
-                    try {
-                        return medicacionService.obtenerMedicacion(idMedicacion);
-                    } catch (InterruptedException | ExecutionException e) {
-                        return null;
-                    }
-                })
+                .map(idMedicacion -> ParseoSeguroUtil.safeObtenerMedicacion(medicacionService, idMedicacion))
                 .filter(Objects::nonNull)
                 .toList();
 
@@ -102,7 +86,7 @@ public class MedicacionController {
     }
 
     @Operation(summary = "Guardar medicación por tratamiento", description = """
-            Retorna un objeto de tipo Medicación con los mismos datos ingresados además de incluir el id del objeto guardado en la base de datos, 
+            Retorna un objeto de tipo Medicación con los mismos datos ingresados además de incluir el id del objeto guardado en la base de datos,
             además de actualizar el registro de tratamiento asociado a la medicación
             """)
     @PostMapping("/tratamiento/{id-tratamiento}")
@@ -157,7 +141,7 @@ public class MedicacionController {
     public ResponseEntity<Medicacion> obtenerMedicacion(@PathVariable("id-medicacion") String idMedicacion)
             throws InterruptedException, ExecutionException {
         var response = medicacionService.obtenerMedicacion(idMedicacion);
-        
+
         if (Objects.nonNull(response))
             return ResponseEntity.ok(response);
         else
@@ -180,6 +164,10 @@ public class MedicacionController {
     @DeleteMapping("/{id-medicacion}")
     public ResponseEntity<String> borrarMedicacion(@PathVariable("id-medicacion") String idMedicacion)
             throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(medicacionService.borrarMedicacion(idMedicacion));
+        var notificacion = notificacionService.obtenerNotificacionPorMedicacion(idMedicacion);
+        var response = medicacionService.borrarMedicacion(idMedicacion);
+        notificacionService.borrarNotificacion(notificacion.getIdNotificacion());
+
+        return ResponseEntity.ok(response);
     }
 }

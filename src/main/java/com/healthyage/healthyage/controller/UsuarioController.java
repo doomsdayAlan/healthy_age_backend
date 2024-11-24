@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Usuario;
@@ -29,6 +25,7 @@ import com.healthyage.healthyage.service.MedicacionService;
 import com.healthyage.healthyage.service.NotificacionService;
 import com.healthyage.healthyage.service.TratamientoService;
 import com.healthyage.healthyage.service.UsuarioService;
+import com.healthyage.healthyage.util.ParseoSeguroUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -97,74 +94,29 @@ public class UsuarioController {
         var objectMapper = new ObjectMapper();
         var tratamientos = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
         var idsMedicaciones = tratamientos.stream()
-                .flatMap(tratamiento -> safeParseMedicaciones(objectMapper, tratamiento.getIdMedicaciones()))
+                .flatMap(tratamiento -> ParseoSeguroUtil.safeParseMedicaciones(objectMapper,
+                        tratamiento.getIdMedicaciones()))
                 .collect(Collectors.toSet());
         var notificaciones = new HashSet<Notificacion>();
 
         notificaciones.addAll(idsMedicaciones.stream()
-                .map(this::safeObtenerNotificacionPorMedicacion)
+                .map(idMedicacion -> ParseoSeguroUtil.safeObtenerNotificacionPorMedicacion(notificacionService,
+                        idMedicacion))
                 .filter(Objects::nonNull)
                 .toList());
         notificaciones.addAll(tratamientos.stream()
-                .flatMap(tratamiento -> safeObtenerNotificacionesPorParametro(
-                        "id_tratamiento", tratamiento.getIdTratamiento()))
+                .flatMap(tratamiento -> ParseoSeguroUtil.safeObtenerNotificacionesPorParametro(notificacionService,
+                        "idTratamiento", tratamiento.getIdTratamiento()))
                 .toList());
-        notificaciones.addAll(notificacionService.obtenerNotificacionesPorParametro("id_cuidador", idUsuario));
+        notificaciones.addAll(notificacionService.obtenerNotificacionesPorParametro("idCuidador", idUsuario));
 
         var response = usuarioService.borrarUsuario(idUsuario);
-        tratamientos.forEach(tratamiento -> safeBorrarTratamiento(tratamiento.getIdTratamiento()));
-        idsMedicaciones.forEach(this::safeBorrarMedicacion);
-        notificaciones.forEach(notificacion -> safeBorrarNotificacion(notificacion.getIdNotificacion()));
+        tratamientos.forEach(tratamiento -> ParseoSeguroUtil.safeBorrarTratamiento(tratamientoService,
+                tratamiento.getIdTratamiento()));
+        idsMedicaciones.forEach(idMedicacion -> ParseoSeguroUtil.safeBorrarMedicacion(medicacionService, idMedicacion));
+        notificaciones.forEach(notificacion -> ParseoSeguroUtil.safeBorrarNotificacion(notificacionService,
+                notificacion.getIdNotificacion()));
 
         return ResponseEntity.ok(response);
-    }
-
-    private Stream<String> safeParseMedicaciones(ObjectMapper objectMapper, String json) {
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {
-            }).stream();
-        } catch (JsonProcessingException e) {
-            return Stream.empty();
-        }
-    }
-
-    private Notificacion safeObtenerNotificacionPorMedicacion(String idMedicacion) {
-        try {
-            return notificacionService.obtenerNotificacionPorMedicacion(idMedicacion);
-        } catch (InterruptedException | ExecutionException e) {
-            return null;
-        }
-    }
-
-    private Stream<Notificacion> safeObtenerNotificacionesPorParametro(String parametro, String valor) {
-        try {
-            return notificacionService.obtenerNotificacionesPorParametro(parametro, valor).stream();
-        } catch (InterruptedException | ExecutionException e) {
-            return Stream.empty();
-        }
-    }
-
-    private void safeBorrarTratamiento(String idTratamiento) {
-        try {
-            tratamientoService.borrarTratamiento(idTratamiento);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getLocalizedMessage());
-        }
-    }
-
-    private void safeBorrarMedicacion(String idMedicacion) {
-        try {
-            medicacionService.borrarMedicacion(idMedicacion);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getLocalizedMessage());
-        }
-    }
-
-    private void safeBorrarNotificacion(String idNotificacion) {
-        try {
-            notificacionService.borrarNotificacion(idNotificacion);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error(e.getLocalizedMessage());
-        }
     }
 }

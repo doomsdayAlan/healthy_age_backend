@@ -1,8 +1,9 @@
 package com.healthyage.healthyage.controller;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,9 +16,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Tratamiento;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
+import com.healthyage.healthyage.service.MedicacionService;
+import com.healthyage.healthyage.service.NotificacionService;
 import com.healthyage.healthyage.service.TratamientoService;
+import com.healthyage.healthyage.util.ParseoSeguroUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +38,8 @@ import lombok.AllArgsConstructor;
 @Tag(name = "Api de tratamientos")
 public class TratamientoController {
     private final TratamientoService tratamientoService;
+    private final MedicacionService medicacionService;
+    private final NotificacionService notificacionService;
 
     @Operation(summary = "Obtener todos los tratamientos", description = """
             Retorna una colección con todos los tratamientos de la base de datos
@@ -89,7 +99,23 @@ public class TratamientoController {
             """)
     @DeleteMapping("/{id-tratamiento}")
     public ResponseEntity<String> borrarTratamiento(@PathVariable("id-tratamiento") String idTratamiento)
-            throws InterruptedException, ExecutionException {
-        return ResponseEntity.ok(tratamientoService.borrarTratamiento(idTratamiento));
+            throws InterruptedException, ExecutionException, JsonProcessingException {
+        var objectMapper = new ObjectMapper();
+        var tratamiento = tratamientoService.obtenerTratamiento(idTratamiento);
+        var idsMedicaciones = objectMapper.readValue(tratamiento.getIdMedicaciones(), new TypeReference<List<String>>() {});
+        var notificaciones = new HashSet<Notificacion>();
+
+        notificaciones.addAll(idsMedicaciones.stream()
+                .map(idMedicacion -> ParseoSeguroUtil.safeObtenerNotificacionPorMedicacion(notificacionService, idMedicacion))
+                .filter(Objects::nonNull)
+                .toList());
+        notificaciones.addAll(ParseoSeguroUtil.safeObtenerNotificacionesPorParametro(notificacionService,"idTratamiento", tratamiento.getIdTratamiento()).toList());
+
+        var response = tratamientoService.borrarTratamiento(idTratamiento);
+        idsMedicaciones.forEach(idMedicacion -> ParseoSeguroUtil.safeBorrarMedicacion(medicacionService, idMedicacion));
+        notificaciones.forEach(notificacion -> ParseoSeguroUtil.safeBorrarNotificacion(notificacionService,
+                notificacion.getIdNotificacion()));
+
+        return ResponseEntity.ok(response);
     }
 }

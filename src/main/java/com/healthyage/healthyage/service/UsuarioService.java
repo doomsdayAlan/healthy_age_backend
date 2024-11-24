@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.DuplicatedObjectException;
-import com.healthyage.healthyage.util.GeneradorOTP;
+import com.healthyage.healthyage.util.GeneradorOTPUtil;
 
 import lombok.AllArgsConstructor;
 
@@ -35,7 +35,7 @@ public class UsuarioService {
     public Usuario guardarUsuario(Usuario usuario)
             throws InterruptedException, ExecutionException {
         var correo = usuario.getCorreo();
-        var otp = GeneradorOTP.generarOTP();
+        var otp = GeneradorOTPUtil.generarOTP();
         var usuariosExistente = firestore.collection(Usuario.PATH).whereArrayContains("correo", correo)
                 .whereEqualTo("numero", usuario.getTelefono()).get().get().getDocuments();
 

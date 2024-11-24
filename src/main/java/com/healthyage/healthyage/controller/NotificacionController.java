@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.healthyage.healthyage.domain.entity.Notificacion;
+import com.healthyage.healthyage.domain.enumeration.TipoNotificacion;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
 import com.healthyage.healthyage.service.NotificacionService;
 
@@ -72,6 +73,13 @@ public class NotificacionController {
             @RequestParam(defaultValue = "false") boolean aceptado,
             @RequestBody @Valid Notificacion notificacion)
             throws InterruptedException, ExecutionException {
+                
+            if(pospuesto) {
+                var notificacionAdultoMayor = notificacion; 
+                notificacionAdultoMayor.setTipoNotificacion(TipoNotificacion.RECORDATORIO_ADULTO_MAYOR);
+                notificacionService.guardarNotificacion(notificacionAdultoMayor);
+            }    
+
         return ResponseEntity.ok(notificacionService.actualizarNotificacion(idNotificacion, notificacion, pospuesto, aceptado));
     }
 
