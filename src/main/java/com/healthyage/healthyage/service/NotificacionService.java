@@ -56,21 +56,16 @@ public class NotificacionService {
         return documento.exists() ? documento.toObject(Notificacion.class) : null;
     }
 
-    public Notificacion obtenerNotificacionPorMedicacion(String idMedicacion)
+    public Notificacion obtenerNotificacionPorParametro(String parametro, String valor)
             throws InterruptedException, ExecutionException {
-        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo("idMedicacion", idMedicacion)
-                .get()
-                .get().getDocuments();
-
-        var documentos = referenciaDocumentos.stream()
-                .map(doc -> doc.toObject(Notificacion.class)).toList();
+        var documentos = obtenerNotificacionesPorParametro(parametro, valor);
         
         return documentos.isEmpty() ? documentos.get(0) : null;
     }
 
-    public List<Notificacion> obtenerNotificacionesPorParametro(String parametro, String idTratamiento)
+    public List<Notificacion> obtenerNotificacionesPorParametro(String parametro, String valor)
             throws InterruptedException, ExecutionException {
-        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo(parametro, idTratamiento)
+        var referenciaDocumentos = firestore.collection(Notificacion.PATH).whereEqualTo(parametro, valor)
                 .get()
                 .get().getDocuments();
 

@@ -16,9 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Tratamiento;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
@@ -99,20 +96,16 @@ public class TratamientoController {
             """)
     @DeleteMapping("/{id-tratamiento}")
     public ResponseEntity<String> borrarTratamiento(@PathVariable("id-tratamiento") String idTratamiento)
-            throws InterruptedException, ExecutionException, JsonProcessingException {
-        var objectMapper = new ObjectMapper();
-        var tratamiento = tratamientoService.obtenerTratamiento(idTratamiento);
-        var idsMedicaciones = objectMapper.readValue(tratamiento.getIdMedicaciones(), new TypeReference<List<String>>() {});
-        var notificaciones = new HashSet<Notificacion>();
-
-        notificaciones.addAll(idsMedicaciones.stream()
-                .map(idMedicacion -> ParseoSeguroUtil.safeObtenerNotificacionPorMedicacion(notificacionService, idMedicacion))
+            throws InterruptedException, ExecutionException {
+        var medicaciones = medicacionService.obtenerMedicacionesPorParametro("idTratamiento", idTratamiento);
+        var notificaciones = new HashSet<Notificacion>(medicaciones.stream()
+                .map(medicacion -> ParseoSeguroUtil.safeObtenerNotificacionPorParametro(notificacionService,
+                        "idMedicacion", medicacion.getIdMedicacion()))
                 .filter(Objects::nonNull)
                 .toList());
-        notificaciones.addAll(ParseoSeguroUtil.safeObtenerNotificacionesPorParametro(notificacionService,"idTratamiento", tratamiento.getIdTratamiento()).toList());
 
         var response = tratamientoService.borrarTratamiento(idTratamiento);
-        idsMedicaciones.forEach(idMedicacion -> ParseoSeguroUtil.safeBorrarMedicacion(medicacionService, idMedicacion));
+        medicaciones.forEach(medicacion -> ParseoSeguroUtil.safeBorrarMedicacion(medicacionService, medicacion.getIdMedicacion()));
         notificaciones.forEach(notificacion -> ParseoSeguroUtil.safeBorrarNotificacion(notificacionService,
                 notificacion.getIdNotificacion()));
 

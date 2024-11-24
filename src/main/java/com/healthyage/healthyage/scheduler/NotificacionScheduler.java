@@ -47,7 +47,7 @@ public class NotificacionScheduler {
             var marcaTiempo = LocalDateTime.parse(notificacion.getMarcaTiempo(), formatter);
 
             var medicacion = medicacionService.obtenerMedicacion(notificacion.getIdMedicacion());
-            var tratamiento = tratamientoService.obtenerTratamiento(notificacion.getIdTratamiento());
+            var tratamiento = tratamientoService.obtenerTratamiento(medicacion.getIdTratamiento());
             var usuario = usuarioService.obtenerUsuario(tratamiento.getIdUsuario());
             var cuidador = usuarioService.obtenerUsuario(notificacion.getIdCuidador());
             var mensaje = new HashMap<String, String>();

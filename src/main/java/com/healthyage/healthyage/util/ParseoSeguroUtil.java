@@ -1,12 +1,8 @@
 package com.healthyage.healthyage.util;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthyage.healthyage.domain.entity.Medicacion;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.service.MedicacionService;
@@ -28,18 +24,9 @@ public class ParseoSeguroUtil {
         }
     }
 
-    public static Stream<String> safeParseMedicaciones(ObjectMapper objectMapper, String json) {
+    public static Notificacion safeObtenerNotificacionPorParametro(NotificacionService notificacionService, String parametro, String valor) {
         try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {
-            }).stream();
-        } catch (JsonProcessingException e) {
-            return Stream.empty();
-        }
-    }
-
-    public static Notificacion safeObtenerNotificacionPorMedicacion(NotificacionService notificacionService, String idMedicacion) {
-        try {
-            return notificacionService.obtenerNotificacionPorMedicacion(idMedicacion);
+            return notificacionService.obtenerNotificacionPorParametro(parametro, valor);
         } catch (InterruptedException | ExecutionException e) {
             return null;
         }
@@ -48,6 +35,15 @@ public class ParseoSeguroUtil {
     public static Stream<Notificacion> safeObtenerNotificacionesPorParametro(NotificacionService notificacionService, String parametro, String valor) {
         try {
             return notificacionService.obtenerNotificacionesPorParametro(parametro, valor).stream();
+        } catch (InterruptedException | ExecutionException e) {
+            return Stream.empty();
+        }
+    }
+
+    public static Stream<Medicacion> safeObtenerMedicacionesPorParametro(MedicacionService medicacionService,
+            String parametro, String valor) {
+        try {
+            return medicacionService.obtenerMedicacionesPorParametro(parametro, valor).stream();
         } catch (InterruptedException | ExecutionException e) {
             return Stream.empty();
         }

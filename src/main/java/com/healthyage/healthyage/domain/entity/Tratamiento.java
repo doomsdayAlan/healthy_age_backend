@@ -31,10 +31,6 @@ public class Tratamiento {
     @Schema(description = "Id del usuario al que se le asigna el tratamiento", example = "K1r2bz38FEgRTudHUMHx")
     private String idUsuario;
     
-    @JsonProperty("id_medicaciones")
-    @Schema(description = "Arreglo de ids de las medicaciones del tratamiento en formato json", example = "[\"K1r2bz38FEgRTudHUMHx\"]")
-    private String idMedicaciones;
-
     @NotBlank(message = "El medico es requerido")
     @Pattern(regexp = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$", message = "El nombre del médico solo debe contener letras válidas")
     @Schema(description = "Nombre del médico que preescribe el tratamiento", example = "K1r2bz38FEgRTudHUMHx")

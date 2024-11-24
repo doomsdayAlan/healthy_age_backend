@@ -25,10 +25,6 @@ public class Notificacion {
     @Schema(description = "Id de la notificación", example = "K1r2bz38FEgRTudHUMHx")
     private String idNotificacion;
 
-    @JsonProperty("id_tratamiento")
-    @Schema(description = "Id del tratamiento del recordatorio", example = "K1r2bz38FEgRTudHUMHx")
-    private String idTratamiento;
-
     @JsonProperty("id_medicacion")
     @Schema(description = "Id de la medicacion del recordatorio", example = "K1r2bz38FEgRTudHUMHx")
     private String idMedicacion;

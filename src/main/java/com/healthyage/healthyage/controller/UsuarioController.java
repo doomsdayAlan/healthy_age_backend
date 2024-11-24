@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
@@ -91,17 +90,16 @@ public class UsuarioController {
     @DeleteMapping("/{id-usuario}")
     public ResponseEntity<String> borrarUsuario(@PathVariable("id-usuario") String idUsuario)
             throws InterruptedException, ExecutionException {
-        var objectMapper = new ObjectMapper();
         var tratamientos = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
-        var idsMedicaciones = tratamientos.stream()
-                .flatMap(tratamiento -> ParseoSeguroUtil.safeParseMedicaciones(objectMapper,
-                        tratamiento.getIdMedicaciones()))
+        var medicaciones = tratamientos.stream()
+                .flatMap(tratamiento -> ParseoSeguroUtil.safeObtenerMedicacionesPorParametro(medicacionService,
+                        "idTratamiento", tratamiento.getIdTratamiento()))
                 .collect(Collectors.toSet());
         var notificaciones = new HashSet<Notificacion>();
 
-        notificaciones.addAll(idsMedicaciones.stream()
-                .map(idMedicacion -> ParseoSeguroUtil.safeObtenerNotificacionPorMedicacion(notificacionService,
-                        idMedicacion))
+        notificaciones.addAll(medicaciones.stream()
+                .map(medicacion -> ParseoSeguroUtil.safeObtenerNotificacionPorParametro(notificacionService,
+                        "idMedicacion", medicacion.getIdMedicacion()))
                 .filter(Objects::nonNull)
                 .toList());
         notificaciones.addAll(tratamientos.stream()
@@ -113,7 +111,7 @@ public class UsuarioController {
         var response = usuarioService.borrarUsuario(idUsuario);
         tratamientos.forEach(tratamiento -> ParseoSeguroUtil.safeBorrarTratamiento(tratamientoService,
                 tratamiento.getIdTratamiento()));
-        idsMedicaciones.forEach(idMedicacion -> ParseoSeguroUtil.safeBorrarMedicacion(medicacionService, idMedicacion));
+        medicaciones.forEach(medicacion -> ParseoSeguroUtil.safeBorrarMedicacion(medicacionService, medicacion.getIdMedicacion()));
         notificaciones.forEach(notificacion -> ParseoSeguroUtil.safeBorrarNotificacion(notificacionService,
                 notificacion.getIdNotificacion()));
 

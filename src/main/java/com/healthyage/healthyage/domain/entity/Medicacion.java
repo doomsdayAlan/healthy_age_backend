@@ -1,6 +1,7 @@
 package com.healthyage.healthyage.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.healthyage.healthyage.domain.enumeration.TipoIntervalo;
 import com.healthyage.healthyage.domain.enumeration.Unindad;
 import com.healthyage.healthyage.domain.enumeration.ViaAdministracion;
@@ -19,15 +20,22 @@ import lombok.Builder.Default;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonPropertyOrder({ "id_medicacion", "id_tratamiento", "id_medicamento", "fecha_inicio", "hora_inicio", "fecha_fin",
+        "intervalo", "tipo_intervalo", "dosis", "unidad", "via_administracion", "existencia_actual", "recordatorio",
+        "limite_recordatorio" })
 public class Medicacion {
     public static final String PATH = "medicacion";
 
     @JsonProperty(value = "id_medicacion", access = JsonProperty.Access.READ_ONLY)
-    @Schema(description = "Id de la medicación", example = "K1r2bz38FEgRTudHUMHx")
+    @Schema(description = "Id de la medicación en la base de datos", example = "K1r2bz38FEgRTudHUMHx")
     private String idMedicacion;
 
+    @JsonProperty(value = "id_tratamiento")
+    @Schema(description = "Id del tratamiento al que pertenece la medicación", example = "K1r2bz38FEgRTudHUMHx")
+    private String idTratamiento;
+
     @JsonProperty("id_medicamento")
-    @Schema(description = "Id del medicamento", example = "K1r2bz38FEgRTudHUMHx")
+    @Schema(description = "Id del medicamento relacionado a la medicación", example = "K1r2bz38FEgRTudHUMHx")
     private String idMedicamento;
 
     @JsonProperty("fecha_inicio")
@@ -39,7 +47,7 @@ public class Medicacion {
     @JsonProperty("hora_inicio")
     @NotBlank(message = "La hora de inicio del tratamiento es requerida")
     @Pattern(regexp = "^([01][\\d]|2[0-3]):[0-5][\\d]$", message = "El formato de hora es incorrecto (HH:mm) (24 horas)")
-    @Schema(description = "Hora en la que inicia el tratamiento", example = "18:25")
+    @Schema(description = "Hora en la que inicia la medicación", example = "18:25")
     private String horaInicio;
 
     @JsonProperty("fecha_fin")
@@ -55,34 +63,34 @@ public class Medicacion {
 
     @JsonProperty("tipo_intervalo")
     @NotBlank(message = "El tipo de intervalo es requerido")
-    @Schema(description = "Intervalo de tiempo entre tomas", example = "HORAS")
+    @Schema(description = "Tipo de intervalo de las tomas", example = "HORAS")
     private TipoIntervalo tipoIntervalo;
 
     @NotBlank(message = "La dosis es requerida")
-    @Schema(description = "Dosis del medicamento del tratamiento", example = "2")
+    @Schema(description = "Dosis del medicamento", example = "2")
     private int dosis;
 
     @JsonProperty("unidad")
     @NotBlank(message = "El tipo de dosis es requerido")
-    @Schema(description = "Tipo de dosis del medicamento (mililitros, miligramos, unidades, etc)", example = "HORAS")
+    @Schema(description = "Tipo de dosis del medicamento", example = "UNIDAD")
     private Unindad unidad;
 
-    @JsonProperty("via_administración")
+    @JsonProperty("via_administracion")
     @NotBlank(message = "La via de administración es requerida")
-    @Schema(description = "La via de administración de la medicación", example = "HORAS")
+    @Schema(description = "La via de administración de la medicación", example = "ORAL")
     private ViaAdministracion viaAdministracion;
 
     @JsonProperty("existencia_actual")
     @NotBlank(message = "La existencia actual es requerida")
-    @Schema(description = "Existencia actual del medicamento", example = "HORAS")
+    @Schema(description = "Existencia actual del medicamento", example = "60")
     private int existenciaActual;
 
     @Default
-    @Schema(description = "Indicador de recordatorio cuando la existencia este por agotarse", example = "2")
+    @Schema(description = "Indicador de recordatorio cuando la existencia este por agotarse (0 = no, 1 = si)", example = "1")
     private int recordatorio = 0;
 
     @JsonProperty("limite_recordatorio")
     @Default
-    @Schema(description = "La cantidad de unidades a la que se notifica cuando la existencia este por agotarse", example = "HORAS")
+    @Schema(description = "La cantidad de unidades a la que se notifica cuando la existencia este por agotarse", example = "4")
     private int limiteRecordatorio = 0;
 }

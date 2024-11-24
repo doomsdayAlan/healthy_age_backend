@@ -2,7 +2,6 @@ package com.healthyage.healthyage.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
@@ -17,9 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.healthyage.healthyage.domain.entity.Medicacion;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.enumeration.TipoNotificacion;
@@ -61,17 +57,10 @@ public class MedicacionController {
             @RequestParam(required = false) LocalDate fecha)
             throws InterruptedException, ExecutionException {
         var tratamientos = tratamientoService.obtenerTratamientosPorUsuario(idUsuario);
-        var objectMapper = new ObjectMapper();
-        var idsMedicaciones = tratamientos.stream()
-                .flatMap(tratamiento -> ParseoSeguroUtil.safeParseMedicaciones(objectMapper,
-                        tratamiento.getIdMedicaciones()))
-                .collect(Collectors.toSet());
-
-        var medicaciones = idsMedicaciones.stream()
-                .distinct()
-                .map(idMedicacion -> ParseoSeguroUtil.safeObtenerMedicacion(medicacionService, idMedicacion))
-                .filter(Objects::nonNull)
-                .toList();
+        var medicaciones = tratamientos.stream()
+                .flatMap(tratamiento -> ParseoSeguroUtil.safeObtenerMedicacionesPorParametro(medicacionService,
+                        "idTratamiento", tratamiento.getIdTratamiento()))
+                .collect(Collectors.toSet()).stream().toList();
 
         return ResponseEntity.ok(medicaciones);
     }
@@ -82,31 +71,11 @@ public class MedicacionController {
     @PostMapping("")
     public ResponseEntity<Medicacion> guardarMedicacion(@RequestBody @Valid Medicacion medicacion)
             throws InterruptedException, ExecutionException, ResourceNotFoundException {
-        return ResponseEntity.ok(medicacionService.guardarMedicacion(medicacion));
-    }
-
-    @Operation(summary = "Guardar medicación por tratamiento", description = """
-            Retorna un objeto de tipo Medicación con los mismos datos ingresados además de incluir el id del objeto guardado en la base de datos,
-            además de actualizar el registro de tratamiento asociado a la medicación
-            """)
-    @PostMapping("/tratamiento/{id-tratamiento}")
-    public ResponseEntity<Medicacion> guardarMedicacionPorTratamiento(
-            @PathVariable("id-tratamiento") String idTratamiento, @RequestBody @Valid Medicacion medicacion)
-            throws InterruptedException, ExecutionException {
         var response = medicacionService.guardarMedicacion(medicacion);
-        var tratamiento = tratamientoService.obtenerTratamiento(idTratamiento);
+        var tratamiento = tratamientoService.obtenerTratamiento(medicacion.getIdTratamiento());
         var usuario = usuarioService.obtenerUsuario(tratamiento.getIdUsuario());
-        var gson = new Gson();
-        var medicaciones = new ArrayList<String>(
-                gson.fromJson(tratamiento.getIdMedicaciones(), new TypeToken<List<String>>() {
-                }.getType()));
-
-        medicaciones.add(medicacion.getIdMedicacion());
-        tratamiento.setIdMedicaciones(gson.toJson(medicaciones));
-        tratamientoService.actualizarTratamiento(idTratamiento, tratamiento);
-
+        
         var notificacionMedicacion = Notificacion.builder()
-                .idTratamiento(idTratamiento)
                 .idMedicacion(medicacion.getIdMedicacion())
                 .idCuidador(usuario.getIdCuidador())
                 .intervalo(medicacion.getIntervalo())
@@ -121,7 +90,6 @@ public class MedicacionController {
 
         if (medicacion.getRecordatorio() == 1) {
             var notificacionExistencia = Notificacion.builder()
-                    .idTratamiento(idTratamiento)
                     .idMedicacion(medicacion.getIdMedicacion())
                     .idCuidador(usuario.getIdCuidador())
                     .marcaTiempo("9999-12-31T23:59:59")
@@ -164,7 +132,7 @@ public class MedicacionController {
     @DeleteMapping("/{id-medicacion}")
     public ResponseEntity<String> borrarMedicacion(@PathVariable("id-medicacion") String idMedicacion)
             throws InterruptedException, ExecutionException {
-        var notificacion = notificacionService.obtenerNotificacionPorMedicacion(idMedicacion);
+        var notificacion = notificacionService.obtenerNotificacionPorParametro("idMedicacion", idMedicacion);
         var response = medicacionService.borrarMedicacion(idMedicacion);
         notificacionService.borrarNotificacion(notificacion.getIdNotificacion());
 

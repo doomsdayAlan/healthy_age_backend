@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.cloud.firestore.Firestore;
 import com.healthyage.healthyage.domain.entity.Medicacion;
+
 import lombok.AllArgsConstructor;
 
 @Service
@@ -48,6 +49,23 @@ public class MedicacionService {
         var documento = futuro.get();
 
         return documento.exists() ? documento.toObject(Medicacion.class) : null;
+    }
+
+    public Medicacion obtenerMedicacionPorParametro(String parametro, String valor)
+            throws InterruptedException, ExecutionException {
+        var documentos = obtenerMedicacionesPorParametro(parametro, valor);
+
+        return documentos.isEmpty() ? documentos.get(0) : null;
+    }
+
+    public List<Medicacion> obtenerMedicacionesPorParametro(String parametro, String valor)
+            throws InterruptedException, ExecutionException {
+        var referenciaDocumentos = firestore.collection(Medicacion.PATH).whereEqualTo(parametro, valor)
+                .get()
+                .get().getDocuments();
+
+        return referenciaDocumentos.stream()
+                .map(doc -> doc.toObject(Medicacion.class)).toList();
     }
 
     public Medicacion actualizarMedicacion(String idMedicacion, Medicacion medicacion)
