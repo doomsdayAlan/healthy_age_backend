@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/notificaciones")
-@Tag(name = "Api de notificaciones")
+@Tag(name = "Notificaciones")
 public class NotificacionController {
     private final NotificacionService notificacionService;
     

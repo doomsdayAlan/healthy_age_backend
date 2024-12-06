@@ -32,7 +32,7 @@ import lombok.AllArgsConstructor;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/tratamientos")
-@Tag(name = "Api de tratamientos")
+@Tag(name = "Tratamientos")
 public class TratamientoController {
     private final TratamientoService tratamientoService;
     private final MedicacionService medicacionService;

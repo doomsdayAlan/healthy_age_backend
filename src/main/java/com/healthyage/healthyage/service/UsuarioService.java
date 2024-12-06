@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import org.springframework.stereotype.Service;
 
 import com.google.cloud.firestore.Firestore;
+import com.healthyage.healthyage.domain.dto.UsuarioUtilDTO;
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.DuplicatedObjectException;
 import com.healthyage.healthyage.util.GeneradorOTPUtil;
@@ -19,6 +20,8 @@ import lombok.AllArgsConstructor;
 public class UsuarioService {
     private final Firestore firestore;
     private final EmailService emailService;
+
+    private static final String CORREO = "correo";
 
     public List<Usuario> obtenerUsuarios() throws InterruptedException, ExecutionException {
         var usuarios = new ArrayList<Usuario>();
@@ -36,7 +39,7 @@ public class UsuarioService {
             throws InterruptedException, ExecutionException {
         var correo = usuario.getCorreo();
         var otp = GeneradorOTPUtil.generarOTP();
-        var usuariosExistente = firestore.collection(Usuario.PATH).whereArrayContains("correo", correo)
+        var usuariosExistente = firestore.collection(Usuario.PATH).whereArrayContains(CORREO, correo)
                 .whereEqualTo("numero", usuario.getTelefono()).get().get().getDocuments();
 
         if (!usuariosExistente.isEmpty())
@@ -87,4 +90,36 @@ public class UsuarioService {
         else
             throw new ExecutionException("Error al borrar el usuario: resultado nulo", null);
     }
+
+    public Usuario login(UsuarioUtilDTO usuarioUtilDTO) throws InterruptedException, ExecutionException {
+        var referenciaDocumento = firestore.collection(Usuario.PATH).whereEqualTo(CORREO, usuarioUtilDTO.getCorreo())
+                .whereEqualTo("pinSeguridad", usuarioUtilDTO.getPinSeguridad());
+        var futuro = referenciaDocumento.get();
+        var documentos = futuro.get().getDocuments();
+
+        return documentos.isEmpty() ? null : documentos.get(0).toObject(Usuario.class);
+    }
+
+    public Usuario confirmarCorreo(UsuarioUtilDTO usuarioUtilDTO) throws InterruptedException, ExecutionException {
+        var referenciaDocumento = firestore.collection(Usuario.PATH).whereEqualTo(CORREO, usuarioUtilDTO.getCorreo());
+        var futuro = referenciaDocumento.get();
+        var documentos = futuro.get().getDocuments();
+
+        if (documentos.isEmpty())
+            return null;
+        
+        var usuario = documentos.get(0).toObject(Usuario.class);
+
+        if (usuario.getCorreo().contains("unverified")) {
+            var info = usuario.getCorreo().split(":");
+
+            if (!info[1].equals(usuarioUtilDTO.getCodigoConfirmacion()))
+                return null;
+            
+            usuario.setCorreo(info[2]);
+            usuario = actualizarUsuario(usuario.getIdUsuario(), usuario);
+        }
+
+        return usuario;
+    } 
 }

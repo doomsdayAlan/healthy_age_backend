@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.healthyage.healthyage.domain.dto.UsuarioUtilDTO;
 import com.healthyage.healthyage.domain.entity.Notificacion;
 import com.healthyage.healthyage.domain.entity.Usuario;
 import com.healthyage.healthyage.exception.ResourceNotFoundException;
@@ -35,13 +36,30 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/usuarios")
-@Tag(name = "Api de usuarios")
+@Tag(name = "Usuarios")
 @Slf4j
 public class UsuarioController {
     private final UsuarioService usuarioService;
     private final NotificacionService notificacionService;
     private final MedicacionService medicacionService;
     private final TratamientoService tratamientoService;
+
+    @Operation(summary = "Endpoint de inicio de sesión", description = """
+            Recibe correo y pin de seguridad y retorna un usuario si el login es exitoso
+            """)
+    @PostMapping("/login")
+    public ResponseEntity<Usuario> login(@RequestBody @Valid UsuarioUtilDTO loginDTO) throws InterruptedException, ExecutionException {
+        return ResponseEntity.ok(usuarioService.login(loginDTO));
+    }  
+
+    @Operation(summary = "Endpoint de verificacion de correo", description = """
+            Recibe correo y la clave de confirmación enviada al y retorna un usuario si la confirmación es exitosa
+            """)
+    @PostMapping("/confirmacion-correo")
+    public ResponseEntity<Usuario> confirmarCorreo(@RequestBody @Valid UsuarioUtilDTO loginDTO)
+            throws InterruptedException, ExecutionException {
+        return ResponseEntity.ok(usuarioService.confirmarCorreo(loginDTO));
+    }
 
     @Operation(summary = "Obtener todos los usuarios", description = """
             Retorna una colección con todos los usuarios de la base de datos
