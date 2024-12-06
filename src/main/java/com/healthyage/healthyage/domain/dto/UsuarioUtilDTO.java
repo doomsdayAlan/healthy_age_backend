@@ -25,6 +25,7 @@ public class UsuarioUtilDTO {
     @Size(min = 5, message = "El pin debe tener al menos 5 digitos")
     private String pinSeguridad;
 
+    @JsonProperty("codigo_confirmacion")
     @Schema(description = "Codigo de confirmación enviado al mail del usuario", example = "S4bX87")
     private String codigoConfirmacion;
 }
