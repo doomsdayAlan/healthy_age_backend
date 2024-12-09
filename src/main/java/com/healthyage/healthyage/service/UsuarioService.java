@@ -47,12 +47,12 @@ public class UsuarioService {
 
         var documento = firestore.collection(Usuario.PATH).document();
         usuario.setIdUsuario(documento.getId());
-        usuario.setCorreo(String.format("unverified:%s:%s", otp, correo));
+        //usuario.setCorreo(String.format("unverified:%s:%s", otp, correo));
         var futuro = documento.set(usuario);
         var result = futuro.get();
 
         if (Objects.nonNull(result)) {
-            emailService.enviarEmail(correo, "Tu clave de verificación", otp);
+            // emailService.enviarEmail(correo, "Tu clave de verificación", otp);
             return usuario;
         } else {
             throw new ExecutionException("Error al guardar el usuario: resultado nulo", null);
