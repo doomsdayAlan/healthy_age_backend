@@ -66,8 +66,8 @@ public class Medicacion {
     @Schema(description = "Tipo de intervalo de las tomas", example = "HORAS")
     private TipoIntervalo tipoIntervalo;
 
-    @NotBlank(message = "La dosis es requerida")
-    @Schema(description = "Dosis del medicamento", example = "2")
+    @Min(1)
+    @Schema(description = "Dosis del medicamento", example = "2") 
     private int dosis;
 
     @JsonProperty("unidad")
